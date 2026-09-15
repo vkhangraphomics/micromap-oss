@@ -8,7 +8,7 @@ abstract: >-
   reviewer can approve before any node lands in the graph.
 authors:
   - family-names: Khandavalli
-    given-names: Vinith
+    given-names: Varun
     affiliation: Graphomics
 type: software
 repository-code: "https://github.com/vkhangraphomics/micromap-oss"
