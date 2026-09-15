@@ -1,0 +1,62 @@
+source:
+  name: "clinvar_brca_mini"
+  format: csv
+  path: "brca_variants.csv"
+  description: >
+    Curated BRCA1/BRCA2 pathogenic ClinVar variants associated with hereditary
+    breast and ovarian cancer syndrome. Fetched from NCBI ClinVar.
+
+entities:
+  - label: Variant
+    match_on: variant_id
+    columns:
+      variant_id: clinvar_id
+      clinvar_id: clinvar_id
+      name: variant_name
+    confidence: EXTRACTED
+
+  - label: Gene
+    match_on: gene_id
+    columns:
+      gene_id: hgnc_id
+      hgnc_id: hgnc_id
+      symbol: gene_symbol
+    confidence: EXTRACTED
+
+  - label: Disease
+    match_on: name_normalized
+    normalizer: normalize_disease_name
+    columns:
+      name: disease_name
+    confidence: EXTRACTED
+
+  - label: Phenotype
+    match_on: phenotype_id
+    columns:
+      phenotype_id: hpo_id
+    confidence: EXTRACTED
+
+  - label: Paper
+    match_on: pmid
+    columns:
+      pmid: pmid
+    confidence: EXTRACTED
+
+relationships:
+  - type: ASSOCIATED_WITH_DISEASE
+    from: "Variant(variant_id=row.clinvar_id)"
+    to:   "Disease(name_normalized=normalize(row.disease_name))"
+    properties:
+      pmid: pmid
+      evidence_level: { constant: pathogenic }
+    confidence: EXTRACTED
+
+  - type: LOCATED_IN_GENE
+    from: "Variant(variant_id=row.clinvar_id)"
+    to:   "Gene(gene_id=row.hgnc_id)"
+    confidence: EXTRACTED
+
+  - type: MENTIONED_IN
+    from: "Variant(variant_id=row.clinvar_id)"
+    to:   "Paper(pmid=row.pmid)"
+    confidence: EXTRACTED

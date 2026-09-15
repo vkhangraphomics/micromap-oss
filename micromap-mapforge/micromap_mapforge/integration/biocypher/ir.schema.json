@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://graphomics.com/schemas/micromap-mapforge/contribution-bundle.schema.json",
+  "title": "MicroMap MapForge Contribution Bundle IR",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "schema_config", "organization_id", "nodes", "edges", "source"],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "schema_config": { "type": "object", "minProperties": 1 },
+    "organization_id": { "type": "string", "minLength": 1 },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "source": { "$ref": "#/$defs/sourceRef" }
+  },
+  "$defs": {
+    "confidence": { "enum": ["EXTRACTED", "INFERRED", "AMBIGUOUS"] },
+    "provenance": {
+      "type": "object",
+      "description": "Open by design — additionalProperties left unset so adapter-specific provenance keys (e.g. confidence_score, internal_ref) pass through. Mirrors Provenance = dict[str, Any] in ir.py.",
+      "required": ["source"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "method": { "enum": ["mined", "curated", "literature"] },
+        "ref": { "type": "string" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "id", "properties", "provenance"],
+      "properties": {
+        "label":        { "type": "string", "minLength": 1 },
+        "id":           { "type": "string", "minLength": 1 },
+        "properties":   { "type": "object" },
+        "provenance":   { "$ref": "#/$defs/provenance" },
+        "confidence":   { "$ref": "#/$defs/confidence" },
+        "tier":         { "type": ["string", "null"] },
+        "merge_field":  { "type": "string", "minLength": 1, "default": "id" },
+        "existing":     { "type": "boolean", "default": false }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "from_id", "to_id", "properties", "provenance"],
+      "properties": {
+        "type":       { "type": "string", "minLength": 1 },
+        "from_id":    { "type": "string", "minLength": 1 },
+        "to_id":      { "type": "string", "minLength": 1 },
+        "properties": { "type": "object" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "tier":       { "type": ["string", "null"] }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sha256"],
+      "properties": {
+        "kind":          { "enum": ["file", "dir", "archive"] },
+        "path":          { "type": "string", "minLength": 1 },
+        "archive_path":  { "type": "string", "minLength": 1 },
+        "sha256":        { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "oneOf": [
+        { "properties": { "kind": { "const": "file" } },    "required": ["path"] },
+        { "properties": { "kind": { "const": "dir" } },     "required": ["path"] },
+        { "properties": { "kind": { "const": "archive" } }, "required": ["archive_path"] }
+      ]
+    }
+  }
+}

@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+venv/
+.venv/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Data
+*.csv
+*.tsv
+*.xml
+data/
+
+# Allow test fixtures regardless of extension
+!micromap-mapforge/tests/fixtures/**
+# Allow example bundles regardless of extension (curated CSV/TSV samples)
+!examples/**
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/.terraform.lock.hcl
+terraform/crash.log
+terraform/*.tfplan
+terraform/*.exe
+terraform/LICENSE.txt
+
+# SSH Keys
+*.pem
+
+# Claude Code
+.claude/
+docs/superpowers/
+.worktrees/
+
+# Generated tool output (MCP servers / skills)
+.playwright-mcp/
+graphify-out/

@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use MapForge in your research, please cite it as below."
+title: "MicroMap MapForge"
+abstract: >-
+  A reviewable ingestion pipeline for biomedical knowledge graphs.
+  Turns raw tabular data into parameterized Cypher bundles that a
+  reviewer can approve before any node lands in Neo4j.
+authors:
+  - family-names: Khandavalli
+    given-names: Vinith
+    affiliation: Graphomics
+type: software
+repository-code: "https://github.com/vkhangraphomics/micromap-oss/tree/main/micromap-mapforge"
+license: MIT
+keywords:
+  - knowledge-graph
+  - neo4j
+  - biomedical
+  - microbiome
+  - data-ingestion
+  - biocypher

@@ -1,0 +1,18 @@
+source:
+  name: biolink-mini
+  format: schema_adapter
+  path: /tmp/gtdb.tsv
+  description: "schema_adapter \u2014 bundle produced by a schema-carrying IR adapter;\
+    \ provenance and structure live in the bundle itself."
+entities:
+- label: OrganismTaxon
+  match_on: id
+  columns:
+    id: id
+    name: name
+relationships:
+- type: MEMBER_OF
+  from: OrganismTaxon(id=row.from)
+  to: OrganismTaxon(id=row.to)
+  properties:
+    evidence: evidence

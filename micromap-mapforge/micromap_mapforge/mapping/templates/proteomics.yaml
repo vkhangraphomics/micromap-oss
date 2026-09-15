@@ -1,0 +1,485 @@
+# MicroMap MapForge — proteomics discipline template (Theme A2' / #74).
+#
+# Curated complete ontology for bottom-up and top-down proteomics,
+# post-translational modification (PTM) analysis, and quantitative
+# proteomics (DIA/DDA/TMT/label-free) workflows.
+# Anchor sources: PRIDE, UniProt, PhosphoSitePlus, Reactome, KEGG,
+# WikiPathways, HGNC, UBERON, BTO, MONDO, OMIM, MESH, DOID.
+#
+# Format: LinkML + x_mapforge extensions, same shape as the microbiome,
+# genomics, transcriptomics, and metabolomics templates.
+#
+# Cross-discipline alignment notes:
+#   - Protein class: UniProt anchor, heavier slot list than the
+#     transcriptomics stub Protein (which carried only the minimum needed
+#     for TRANSLATES_TO). This template's Protein is the canonical
+#     proteomics entity.
+#   - Gene class: slots/identifiers/primary_id identical to the genomics
+#     and transcriptomics Gene classes so projects spanning disciplines
+#     use the same merge key.
+#   - Disease class: reuses normalize_disease_name for cross-loader
+#     unification (same as genomics, transcriptomics, metabolomics).
+#   - Tissue class: id_prefixes and primary_id identical to transcriptomics
+#     Tissue — expression host vs. proteomics host share the same ontology.
+#   - Study/Sample: PRIDE-prefixed (pride.normalize_prefix = "pride"),
+#     study_type = "proteomics" / sample_type = "proteomics" discriminators
+#     set by loader (same loader-set discriminator pattern as metabolomics).
+#   - Modification: PTM node with composite primary_id
+#     "<uniprot_accession>:<ptm_type>:<site>" — unique to this template.
+#   - Measurement: measurement_id = "<study_id>:<sample_id>:<protein_id>"
+#     mirrors metabolomics Measurement composite key pattern.
+
+name: micromap-proteomics
+description: MicroMap proteomics KG ontology (Protein/Modification/Gene/Disease/Pathway/Tissue/Study/Sample/Measurement/Paper)
+version: "1.0.0"
+last_updated: "2026-06-08"
+
+prefixes:
+  UniProt: https://www.uniprot.org/uniprot/
+  PRO: http://purl.obolibrary.org/obo/PR_
+  HGNC: https://www.genenames.org/data/gene-symbol-report/
+  NCBIGene: https://www.ncbi.nlm.nih.gov/gene/
+  Ensembl: https://www.ensembl.org/Gene/
+  MONDO: http://purl.obolibrary.org/obo/MONDO_
+  OMIM: https://omim.org/entry/
+  MESH: http://id.nlm.nih.gov/mesh/
+  DOID: http://purl.obolibrary.org/obo/DOID_
+  Reactome: https://reactome.org/content/detail/
+  KEGG: https://www.genome.jp/dbget-bin/www_bget?
+  WikiPathways: https://www.wikipathways.org/instance/
+  UBERON: http://purl.obolibrary.org/obo/UBERON_
+  BTO: http://purl.obolibrary.org/obo/BTO_
+  pride: https://www.ebi.ac.uk/pride/archive/projects/
+  PMID: https://pubmed.ncbi.nlm.nih.gov/
+  DOI: https://doi.org/
+  local: ""
+
+classes:
+  # --- Node classes --------------------------------------------------------
+
+  Protein:
+    is_a: named thing
+    id_prefixes: [UniProt]
+    slots:
+      - id
+      - name
+      - protein_id
+      - uniprot_accession
+      - uniprot_id
+      - gene_name
+      - organism
+      - molecular_weight
+      - sequence_length
+    x_mapforge:
+      primary_id: protein_id
+      identifiers: [protein_id, uniprot_accession, uniprot_id]
+      name_field: name
+      common_columns_hint:
+        - protein
+        - protein_id
+        - uniprot
+        - uniprot_id
+        - uniprot_accession
+        - accession
+        - gene_name
+        - protein_accession
+      normalizer: null
+      status: populated
+      notes: |
+        protein_id is a prefixed CURIE: "UNIPROT:<accession>".
+        uniprot_accession is the bare UniProt accession (e.g., "P04637").
+        gene_name is the denormalized HGNC symbol carried on the protein node
+        for DrugBank/ChEMBL compatibility — proteomics source files often
+        include gene_name alongside UniProt accession in the same row.
+        Heavier slot list than the transcriptomics stub Protein (which only
+        needed the TRANSLATES_TO anchor). The transcriptomics template's
+        Protein common_columns_hint deliberately omits `uniprot_accession`
+        (RNA-seq exports don't carry it); this template adds it back because
+        proteomics source files do.
+
+  Modification:
+    is_a: molecular entity
+    id_prefixes: [PRO, local]
+    slots:
+      - id
+      - name
+      - modification_id
+      - ptm_type
+      - site
+      - site_position
+      - evidence_type
+    x_mapforge:
+      primary_id: modification_id
+      identifiers: [modification_id]
+      name_field: name
+      common_columns_hint:
+        - modification
+        - modification_id
+        - ptm
+        - ptm_type
+        - phosphorylation
+        - ubiquitination
+        - acetylation
+        - methylation
+        - site
+        - phosphosite
+      normalizer: null
+      status: populated
+      notes: |
+        modification_id = "<uniprot_accession>:<ptm_type>:<site>" (composite,
+        synthetic). ptm_type is a controlled vocabulary (e.g., "phosphorylation",
+        "ubiquitination", "acetylation", "methylation", "glycosylation").
+        site is the amino-acid position string (e.g., "S473", "K48"). PRO
+        (Protein Ontology) provides formal PTM class CURIEs for well-characterized
+        modifications; local: is the escape hatch for novel or dataset-specific
+        PTM identifiers that don't resolve to PRO.
+
+  Gene:
+    is_a: named thing
+    id_prefixes: [HGNC, NCBIGene, Ensembl]
+    slots:
+      - id
+      - symbol
+      - gene_id
+      - hgnc_id
+      - ncbi_gene_id
+      - ensembl_gene_id
+    x_mapforge:
+      primary_id: gene_id
+      identifiers: [gene_id, hgnc_id, ncbi_gene_id, ensembl_gene_id, symbol]
+      name_field: symbol
+      common_columns_hint:
+        - gene
+        - gene_id
+        - gene_symbol
+        - hgnc
+        - hgnc_id
+        - ncbi_gene_id
+        - entrez_id
+        - ensembl_gene_id
+        - symbol
+      normalizer: null
+      status: populated
+      notes: >
+        Identical slots / identifiers / primary_id / name_field to the genomics
+        and transcriptomics Gene classes — projects spanning disciplines use the
+        same Gene merge key.
+
+  Disease:
+    is_a: disease or phenotypic feature
+    id_prefixes: [MONDO, OMIM, MESH, DOID]
+    slots:
+      - id
+      - name
+      - disease_id
+      - name_normalized
+      - mondo_id
+      - omim_id
+      - mesh_id
+      - doid
+    x_mapforge:
+      primary_id: name_normalized
+      identifiers: [name_normalized, disease_id, mondo_id, omim_id, mesh_id, doid]
+      name_field: name
+      common_columns_hint:
+        - disease
+        - disease_id
+        - mondo_id
+        - mondo
+        - omim
+        - omim_id
+        - mesh_id
+        - doid
+        - condition
+        - disorder
+        - diagnosis
+      normalizer: normalize_disease_name
+      status: populated
+      notes: >
+        MERGE on name_normalized for cross-loader deduplication.
+        Same pattern as the microbiome, genomics, transcriptomics, and
+        metabolomics Disease classes.
+
+  Pathway:
+    is_a: biological process
+    id_prefixes: [Reactome, KEGG, WikiPathways]
+    slots:
+      - id
+      - name
+      - pathway_id
+      - reactome_id
+      - kegg_id
+      - wikipathways_id
+    x_mapforge:
+      primary_id: pathway_id
+      identifiers: [pathway_id, reactome_id, kegg_id, wikipathways_id]
+      name_field: name
+      common_columns_hint:
+        - pathway
+        - pathway_id
+        - reactome
+        - reactome_id
+        - kegg_pathway
+        - kegg_pathway_id
+        - wikipathways
+      normalizer: null
+      status: populated
+      notes: >
+        Reactome is the dominant pathway source for proteomics (STRING
+        integration, IntAct). KEGG and WikiPathways for cross-discipline
+        alignment with microbiome and metabolomics templates.
+
+  Tissue:
+    is_a: anatomical entity
+    id_prefixes: [UBERON, BTO]
+    slots:
+      - id
+      - name
+      - tissue_id
+      - uberon_id
+      - bto_id
+    x_mapforge:
+      primary_id: tissue_id
+      identifiers: [tissue_id, uberon_id, bto_id]
+      name_field: name
+      common_columns_hint:
+        - tissue
+        - organ
+        - anatomy
+        - uberon
+        - uberon_id
+        - bto
+        - bto_id
+      normalizer: null
+      status: populated
+      notes: >
+        Identical to the transcriptomics Tissue class (same id_prefixes,
+        primary_id, identifiers, common_columns_hint). Proteomics tissue
+        context = the expression host for protein quantification, same
+        as the transcriptomics expression host.
+
+  Study:
+    is_a: investigation
+    id_prefixes: [pride, PMID]
+    slots:
+      - id
+      - title
+      - study_id
+      - study_type
+      - description
+      - publication_date
+      - pride_accession
+    x_mapforge:
+      primary_id: study_id
+      identifiers: [study_id, pride_accession]
+      name_field: title
+      common_columns_hint:
+        - study
+        - study_id
+        - pride_accession
+        - pride_id
+        - project
+        - dataset
+      normalizer: null
+      status: populated
+      notes: >
+        study_type = "proteomics" set by the loader (discriminator, same
+        pattern as metabolomics). pride_accession is the PRIDE project
+        accession (e.g., "PXD000001"). PMID for studies that are anchored
+        to a publication rather than (or in addition to) a PRIDE deposition.
+
+  Sample:
+    is_a: material sample
+    id_prefixes: [pride, local]
+    slots:
+      - id
+      - name
+      - sample_id
+      - sample_type
+      - organism
+      - tissue
+      - disease_state
+      - fraction
+    x_mapforge:
+      primary_id: sample_id
+      identifiers: [sample_id]
+      name_field: name
+      common_columns_hint:
+        - sample
+        - sample_id
+        - specimen
+        - fraction
+        - replicate
+      normalizer: null
+      status: populated
+      notes: >
+        sample_type = "proteomics" set by the loader (discriminator).
+        local: is the escape hatch for project-internal sample IDs that
+        don't resolve to PRIDE. pride: prefix for samples that do have
+        PRIDE-traceable accessions.
+
+  Measurement:
+    is_a: quantity value
+    id_prefixes: [local]
+    slots:
+      - id
+      - measurement_id
+      - value
+      - unit
+      - assay_type
+      - detection_method
+      - normalization
+    x_mapforge:
+      primary_id: measurement_id
+      identifiers: [measurement_id]
+      common_columns_hint:
+        - measurement
+        - measurement_id
+        - intensity
+        - abundance
+        - iBAQ
+        - lfq_intensity
+        - tmt_ratio
+        - ratio
+        - spectral_count
+      normalizer: null
+      status: populated
+      notes: |
+        measurement_id = "<study_id>:<sample_id>:<protein_id>" (composite,
+        synthetic). Modeled as a node (not an edge property) to support
+        value-range queries and multi-replicate quantification. assay_type
+        distinguishes DIA / DDA / TMT / label-free / SRM. normalization
+        records the normalization method (e.g., "iBAQ", "LFQ", "TMT").
+        local: is the standard escape hatch for project-internal IDs.
+
+  Paper:
+    is_a: information content entity
+    id_prefixes: [PMID, DOI]
+    slots:
+      - id
+      - title
+      - paper_id
+      - pmid
+      - doi
+    x_mapforge:
+      primary_id: paper_id
+      identifiers: [paper_id, pmid, doi]
+      name_field: title
+      common_columns_hint:
+        - pmid
+        - doi
+        - citation
+        - reference
+        - paper_id
+      normalizer: null
+      status: populated
+      notes: >
+        Shared pattern across all discipline templates. pmid and doi are
+        the two dominant external identifiers for proteomics literature.
+
+  # --- Relationship classes -----------------------------------------------
+
+  MODIFIES:
+    is_a: association
+    subject: Modification
+    object: Protein
+    x_mapforge:
+      properties: [site, site_position, ptm_type, evidence_type, pmid]
+      status: populated
+      notes: >
+        A PTM Modification node modifies a target Protein. Site and
+        position are carried on the edge as well as the Modification node
+        for query convenience (avoid double-hop for simple site queries).
+
+  ENCODES:
+    is_a: association
+    subject: Gene
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: >
+        Gene → Protein coding relationship. Identical semantics to the
+        genomics and transcriptomics ENCODES edge — cross-template
+        alignment maintained.
+
+  PARTICIPATES_IN:
+    is_a: association
+    subject: Protein
+    object: Pathway
+    x_mapforge:
+      properties: [role, evidence_code]
+      status: populated
+      notes: >
+        Protein participation in a Reactome / KEGG / WikiPathways pathway.
+        evidence_code for annotation-source tracking.
+
+  ASSOCIATED_WITH_DISEASE:
+    is_a: association
+    subject: Protein
+    object: Disease
+    x_mapforge:
+      properties: [evidence_level, direction, pmid]
+      status: populated
+      notes: >
+        Protein–Disease association from proteomics studies (e.g.,
+        differential abundance, biomarker evidence). direction = "up" |
+        "down" | "biomarker" | "driver".
+
+  HAS_SAMPLE:
+    is_a: association
+    subject: Study
+    object: Sample
+    x_mapforge:
+      status: populated
+      notes: >
+        Study-to-sample membership — PRIDE study-to-sample provenance.
+        Same pattern as the metabolomics HAS_SAMPLE edge.
+
+  HAS_MEASUREMENT:
+    is_a: association
+    subject: Sample
+    object: Measurement
+    x_mapforge:
+      status: populated
+      notes: >
+        Per-sample quantitative measurement. Same pattern as the
+        metabolomics HAS_MEASUREMENT edge.
+
+  QUANTIFIES:
+    is_a: association
+    subject: Measurement
+    object: Protein
+    x_mapforge:
+      status: populated
+      notes: >
+        Links a quantitative Measurement to its target Protein. Same
+        pattern as metabolomics QUANTIFIES (target is Compound there;
+        here target is Protein).
+
+  SAMPLE_FROM_TISSUE:
+    is_a: association
+    subject: Sample
+    object: Tissue
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: >
+        Tissue source for a proteomics sample — same pattern as the
+        transcriptomics SAMPLE_FROM_TISSUE edge.
+
+  MENTIONED_IN:
+    # `subject: any` is a MapForge sentinel meaning "any node class" — it is
+    # NOT a LinkML class. Carried from the microbiome / genomics /
+    # transcriptomics templates.
+    is_a: association
+    subject: any
+    object: Paper
+    x_mapforge:
+      properties: [sentence]
+      status: populated
+      notes: >
+        Reused from microbiome / genomics / transcriptomics / metabolomics
+        templates. Covers all node classes in this template: Protein,
+        Modification, Gene, Disease, Pathway, Tissue, Study, Sample,
+        Measurement, and Paper itself.

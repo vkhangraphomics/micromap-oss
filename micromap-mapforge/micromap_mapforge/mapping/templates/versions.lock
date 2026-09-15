@@ -1,0 +1,22 @@
+{
+  "genomics": {
+    "sha256": "60ff2602b7501e78e5adc46b76dcfa1801f3112de84cd2f264364dff2b62587c",
+    "version": "1.1.0"
+  },
+  "metabolomics": {
+    "sha256": "e402c462a84a800da5b6b935c9e0c651755667548ab20682a3a82c827666e610",
+    "version": "1.1.0"
+  },
+  "microbiome": {
+    "sha256": "4a0ac6fd030c86c2decd968cb1c7e0c4ac96f60d9b224ed8997fee523fbfe7e5",
+    "version": "1.1.0"
+  },
+  "proteomics": {
+    "sha256": "90a0c6ce6291c40d3e266dd809763513596e6767ffa91dd3a885bbf45107aa5f",
+    "version": "1.0.0"
+  },
+  "transcriptomics": {
+    "sha256": "e8c7ed0fb54d31526b4db4721098ebe8da3e397d6dac77be860f957bff3fdfd1",
+    "version": "1.1.0"
+  }
+}

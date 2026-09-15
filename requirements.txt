@@ -1,0 +1,48 @@
+# Core
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+slowapi>=0.1.9
+
+# Neo4j
+neo4j>=5.15.0
+
+# Schema config — api/schema/loader.py reads micromap_schema_config.yaml
+PyYAML>=6.0
+
+# Data loading
+requests>=2.31.0
+
+# Loader `__main__` CLI entry points (9 sites under database/ingestion/*.py
+# + database/neo4j_schema.py:565). The previous chore sweep (PR #180)
+# removed this because top-level imports showed zero hits, missing the
+# 9 indented `from dotenv import load_dotenv` lines inside `if __name__:`
+# blocks. Restored.
+python-dotenv>=1.0.0
+
+# S3 data management (database/ingestion/s3_data_manager.py)
+boto3>=1.28.0
+
+# Federation (api/federation/adapter.py)
+httpx>=0.27.0
+
+# JWT + service-account identity (api/identity.py, #190 pillar 5).
+# The [crypto] extra pulls `cryptography` for RS256 / JWKS verification.
+PyJWT[crypto]>=2.8
+# Decision-provenance append-only event log (api/decision_log.py, #190 pillar 2)
+psycopg[binary]>=3.2
+
+# Test-only (federation unit tests)
+pytest-asyncio>=0.23.0
+respx>=0.21.0
+
+# MapForge shared submit core (api/routes/federation.py, #206) is installed
+# from ./micromap-mapforge in the Dockerfile AFTER the code copy (its source
+# isn't present at requirements-install time). For local dev:
+#   pip install -e ./micromap-mapforge
+# Test-only (Postgres event-log integration tests via testcontainers)
+testcontainers[postgres]>=4.0
+# Test-only (seeded graph-invariant tests, tests/test_kg_invariants_seeded.py —
+# the repo-integration CI job. Without a seeded Neo4j the KG integrity checks
+# only run against a live box, i.e. never in CI, which is how #298's vacuous
+# CHILD_OF guardrails survived for years.)
+testcontainers[neo4j]>=4.0

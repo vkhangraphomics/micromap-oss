@@ -1,0 +1,53 @@
+# micromap-mapforge/routing-policy.example.yaml
+# Default routing policy for MicroMap MapForge.
+# First-matching rule wins. If no rule matches, `default` is used.
+# Match fields are optional; a rule matches when all specified fields match
+# the contributor manifest + bundle metadata.
+
+rules:
+  - match:
+      sensitivity: pii
+    destination: registry-only
+
+  - match:
+      tier: internal
+    destination: micromap-core
+
+  - match:
+      tier: partner
+      max_rows: 99999
+    destination: micromap-core
+
+  - match:
+      tier: partner
+      min_rows: 100000
+    destination: new-federated-instance
+
+  - match:
+      tier: external
+    destination: registry-only
+
+default:
+  destination: registry-only
+
+# `destinations` is required only when at least one rule (or `default`) routes
+# to `new-federated-instance`. Each entry below is keyed by the destination
+# string and carries the federation metadata MapForge needs to:
+#   - write the bundle's Cypher to the remote MicroMap's Neo4j (bolt_uri,
+#     bolt_auth_ref);
+#   - register the source on micromap-core's federation registry (source_id,
+#     display_name, base_url, capabilities, organization_id, auth_ref).
+# `bolt_auth_ref` and `auth_ref` use the env:NAME indirection contract: the
+# referenced env var must be set on the MapForge process at submit time.
+destinations:
+  new-federated-instance:
+    federation:
+      source_id:       acme-pharma
+      display_name:    "Acme Pharma"
+      base_url:        https://micromap.acme.example.com
+      bolt_uri:        bolt+s://acme-neo4j.acme.example.com:7687
+      bolt_auth_ref:   env:ACME_BOLT_PASSWORD
+      auth_ref:        env:ACME_FEDERATION_TOKEN
+      auth_type:       bearer
+      capabilities:    [diseases.taxa, taxa.diseases]
+      organization_id: acme

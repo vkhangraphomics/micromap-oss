@@ -1,0 +1,5 @@
+rules:
+  - match: { tier: VIP }
+    destination: micromap-core
+default:
+  destination: registry-only

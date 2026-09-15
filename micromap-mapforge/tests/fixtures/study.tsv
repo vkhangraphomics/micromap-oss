@@ -1,0 +1,5 @@
+tax_id	organism	condition	log2fc	pvalue
+562	Escherichia coli	Crohn's Disease	1.3	0.001
+1496	Clostridium difficile	Ulcerative Colitis	-2.1	0.0003
+562	Escherichia coli	Ulcerative Colitis	0.8	0.02
+	Unknown species	IBS	0.1	0.8

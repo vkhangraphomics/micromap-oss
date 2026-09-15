@@ -1,0 +1,116 @@
+version: '3.8'
+
+#
+# MicroMap - Microbiome Knowledge Graph Platform
+#
+# Usage:
+#   docker compose up -d
+#
+# Load data:
+#   docker compose exec micromap-api python -m database.load_knowledge_graph --all
+#
+
+services:
+  # ===========================================
+  # NEO4J - Knowledge Graph Database
+  # ===========================================
+  neo4j:
+    image: neo4j:5.15.0
+    container_name: micromap-neo4j
+    ports:
+      - "${NEO4J_HTTP_PORT:-7474}:7474"   # Browser
+      - "${NEO4J_BOLT_PORT:-7687}:7687"   # Bolt protocol
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-changeme}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_memory_heap_initial__size=${NEO4J_HEAP_INITIAL:-256M}
+      - NEO4J_dbms_memory_heap_max__size=${NEO4J_HEAP_MAX:-1G}
+      - NEO4J_dbms_memory_pagecache_size=${NEO4J_PAGECACHE:-512M}
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+    networks:
+      - micromap-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-changeme}", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ===========================================
+  # POSTGRES - Decision-provenance append-only event log (#190 pillar 2)
+  # ===========================================
+  postgres:
+    image: postgres:16
+    container_name: micromap-postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-micromap}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - POSTGRES_DB=${POSTGRES_DB:-micromap_provenance}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - micromap-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-micromap}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ===========================================
+  # MICROMAP API - FastAPI Service
+  # ===========================================
+  micromap-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: micromap-api
+    ports:
+      - "${API_PORT:-8200}:8200"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-changeme}
+      - NEO4J_DATABASE=${NEO4J_DATABASE:-neo4j}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      # API Authentication (leave empty to disable auth in dev)
+      - API_KEYS=${API_KEYS:-}
+      # key:org pairs so org-scoping on /provenance/* is a real boundary (#370)
+      - API_KEY_ORGS=${API_KEY_ORGS:-}
+      - DEFAULT_ORG=${DEFAULT_ORG:-default}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-100}
+      # Decision-provenance event log (#190). Unset DATABASE_URL to disable it.
+      - DATABASE_URL=${DATABASE_URL:-postgresql://micromap:changeme@postgres:5432/micromap_provenance}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - micromap-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  micromap-network:
+    driver: bridge
+    name: micromap-network
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  postgres_data:

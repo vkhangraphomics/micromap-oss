@@ -1,0 +1,53 @@
+source:
+  name: "disbiome_curated_example"
+  format: csv
+  path: "disbiome_sample.csv"
+  description: >
+    Curated microbiome-disease associations sourced from peer-reviewed
+    literature, in Disbiome CSV column shape. Each row is a published
+    association (with PMID/DOI) and resolves against MicroMap's existing
+    NCBI Taxonomy + Disease Ontology nodes.
+
+entities:
+  - label: Taxon
+    match_on: ncbi_tax_id
+    columns:
+      ncbi_tax_id: ncbi_taxid          # CSV's column name → ontology field
+      scientific_name: microorganism
+      rank: taxonomic_rank
+    confidence: EXTRACTED
+
+  - label: Disease
+    match_on: name_normalized
+    normalizer: normalize_disease_name
+    columns:
+      name: disease
+      doid: doid
+    confidence: EXTRACTED
+
+  - label: Paper
+    match_on: pmid
+    columns:
+      pmid: pmid
+      doi: doi
+    confidence: EXTRACTED
+
+relationships:
+  - type: ASSOCIATED_WITH_DISEASE
+    from: "Taxon(ncbi_tax_id=row.ncbi_taxid)"
+    to:   "Disease(name_normalized=normalize(row.disease))"
+    properties:
+      direction: qualitative_outcome    # increased / decreased / altered
+      sample_type: sample
+      method: method
+      pmid: pmid
+      doi: doi
+      evidence_level: { constant: literature_curated }
+    confidence: EXTRACTED
+
+  - type: MENTIONED_IN
+    from: "Taxon(ncbi_tax_id=row.ncbi_taxid)"
+    to:   "Paper(pmid=row.pmid)"
+    properties:
+      context: { constant: microbiome_association }
+    confidence: EXTRACTED

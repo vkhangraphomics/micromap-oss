@@ -1,0 +1,391 @@
+# MicroMap MapForge — transcriptomics discipline template (Theme A2' / #74).
+#
+# Curated complete ontology for bulk + single-cell expression and
+# differential-expression analyses. Anchor sources: GTEx, ARCHS4, GEO, TCGA,
+# Reactome, GO, UBERON, EFO, CL.
+#
+# Format: LinkML + x_mapforge extensions, same shape as the microbiome and
+# genomics templates.
+#
+# Cross-discipline alignment notes:
+#   - Gene + Transcript classes are deliberately identical to the genomics
+#     template's so a project loading either gets the same identifier shape.
+#   - Tissue is distinct from microbiome's BodySite (same UBERON anchor but
+#     different relationship context — expression host vs. microbial
+#     colonization). Documented per-class.
+#   - Sample is unique to transcriptomics (microbiome's broader DB schema has
+#     a Sample, but the microbiome TEMPLATE doesn't currently expose one).
+#     If a future microbiome-template revision adds Sample, the curation
+#     guideline on cross-discipline disambiguation applies.
+
+name: micromap-transcriptomics
+description: MicroMap transcriptomics KG ontology (Gene/Sample/Condition/Tissue/CellType/etc.)
+version: "1.1.0"
+last_updated: "2026-06-05"
+
+prefixes:
+  HGNC: https://www.genenames.org/data/gene-symbol-report/
+  NCBIGene: https://www.ncbi.nlm.nih.gov/gene/
+  Ensembl: https://www.ensembl.org/Gene/
+  RefSeq: https://www.ncbi.nlm.nih.gov/refseq/
+  UniProt: https://www.uniprot.org/uniprot/
+  GEO: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=
+  insdc.sra: https://www.ncbi.nlm.nih.gov/sra/
+  local: ""
+  EFO: http://www.ebi.ac.uk/efo/EFO_
+  MONDO: http://purl.obolibrary.org/obo/MONDO_
+  OMIM: https://omim.org/entry/
+  MESH: http://id.nlm.nih.gov/mesh/
+  DOID: http://purl.obolibrary.org/obo/DOID_
+  UBERON: http://purl.obolibrary.org/obo/UBERON_
+  BTO: http://purl.obolibrary.org/obo/BTO_
+  CL: http://purl.obolibrary.org/obo/CL_
+  CLO: http://purl.obolibrary.org/obo/CLO_
+  Reactome: https://reactome.org/content/detail/
+  KEGG: https://www.genome.jp/dbget-bin/www_bget?
+  WikiPathways: https://www.wikipathways.org/instance/
+  GO: http://purl.obolibrary.org/obo/GO_
+  PMID: https://pubmed.ncbi.nlm.nih.gov/
+  DOI: https://doi.org/
+  dbGaP: https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=
+
+classes:
+  # --- Node classes ----------------------------------------------------
+
+  Gene:
+    id_prefixes: [HGNC, NCBIGene, Ensembl]
+    slots: [id, symbol, gene_id, hgnc_id, ncbi_gene_id, ensembl_gene_id]
+    x_mapforge:
+      primary_id: gene_id
+      identifiers: [gene_id, hgnc_id, ncbi_gene_id, ensembl_gene_id, symbol]
+      name_field: symbol
+      # ...plus AnnData var conventions (#286 G3): the var index (var_name) is
+      # gene symbols/ids, and `gene_ids` is the standard 10x/Scanpy var column.
+      common_columns_hint: [gene, gene_id, gene_symbol, hgnc, hgnc_id,
+                            ncbi_gene_id, entrez_id, ensembl_gene_id, symbol,
+                            gene_ids, var_name]
+      normalizer: null
+      notes: >
+        gene_id is the prefixed form (e.g., "HGNC:5"); hgnc_id / ncbi_gene_id /
+        ensembl_gene_id are the bare identifiers. Identical slots / identifiers
+        / primary_id / name_field to the genomics Gene class — projects in
+        either discipline see the same Gene merge key. Diverges from the
+        microbiome template's Gene class (microbiome uses `ensembl_id` without
+        `_gene_` and includes `hgnc_symbol` / `uniprot_id`); microbiome Gene is
+        de-facto-empty in practice per CLAUDE.md and issue #81, so
+        cross-template Gene unification is out of scope here. See
+        `templates/genomics.yaml` for the original rationale.
+
+  Transcript:
+    id_prefixes: [Ensembl, RefSeq]
+    slots: [id, name, transcript_id, enst_id, refseq_nm, gene_id]
+    x_mapforge:
+      primary_id: transcript_id
+      identifiers: [transcript_id, enst_id, refseq_nm]
+      name_field: name
+      common_columns_hint: [transcript, transcript_id, enst, ensembl_transcript,
+                            refseq, refseq_nm]
+      normalizer: null
+      notes: >
+        Identical slots / identifiers / primary_id / name_field to the genomics
+        Transcript class — required for both because Variant.hgvs_c (genomics)
+        and per-transcript expression (transcriptomics) are transcript-relative.
+
+  Sample:
+    id_prefixes: [GEO, insdc.sra, local]
+    slots: [id, name, sample_id, gsm, srr, donor_id]
+    x_mapforge:
+      primary_id: sample_id
+      identifiers: [sample_id, gsm, srr, donor_id]
+      name_field: name
+      common_columns_hint: [sample, sample_id, gsm, srr, run_accession,
+                            geo_accession, donor_id]
+      normalizer: null
+      notes: >
+        The dominant join key in expression datasets. gsm is the standard
+        GEO sample accession column header (GEO SOFT files use it verbatim);
+        srr is the NCBI SRA (insdc.sra) Run identifier. The `local:` CURIE prefix is the
+        escape hatch for project-internal IDs (e.g.,
+        "local:patient_42_baseline") that don't ontology-resolve. Unique to
+        the transcriptomics template today; see
+        docs/schemas/discipline-templates.md for the cross-discipline
+        disambiguation guideline if other templates add Sample in the future.
+
+  Study:
+    id_prefixes: [GEO, PMID, dbGaP]
+    slots: [id, name, study_id, geo_series, pmid, dbgap_id]
+    x_mapforge:
+      primary_id: study_id
+      identifiers: [study_id, geo_series, pmid, dbgap_id]
+      name_field: name
+      common_columns_hint: [study, project, dataset, cohort, gse,
+                            geo_series, dbgap]
+      normalizer: null
+      notes: >
+        Same class name as the genomics Study but a different prefix set —
+        GEO Series (GSE) added because transcriptomics studies are typically
+        anchored in GEO. See the "shared concepts, different prefix sets"
+        curation guideline.
+
+  Condition:
+    id_prefixes: [EFO, MONDO]
+    slots: [id, name, condition_id, efo_id, mondo_id, label]
+    x_mapforge:
+      primary_id: condition_id
+      identifiers: [condition_id, efo_id, mondo_id, label]
+      name_field: name
+      common_columns_hint: [condition, treatment, group, contrast, exposure,
+                            efo, efo_id]
+      normalizer: null
+      notes: >
+        The experimental contrast (e.g., "IBD vs. healthy control",
+        "treated 6h", "tumor stage II"). EFO is the standard ontology for
+        trait/exposure; MONDO carries disease conditions. The `label` slot
+        captures free-text contrasts that don't ontology-resolve (rather than
+        forcing a fake CURIE). The `local:` prefix is NOT declared on
+        Condition — project-internal labels should use the `label` slot.
+
+  Tissue:
+    id_prefixes: [UBERON, BTO]
+    slots: [id, name, tissue_id, uberon_id, bto_id]
+    x_mapforge:
+      primary_id: tissue_id
+      identifiers: [tissue_id, uberon_id, bto_id]
+      name_field: name
+      common_columns_hint: [tissue, organ, anatomy, uberon, bto]
+      normalizer: null
+      notes: >
+        Distinct from the microbiome template's BodySite (both UBERON-anchored
+        but different relationship context — Tissue is the expression host,
+        BodySite is the microbial colonization site). BTO (BRENDA Tissue
+        Ontology) added because GEO/ARCHS4 use it heavily.
+
+  CellType:
+    id_prefixes: [CL, CLO]
+    slots: [id, name, celltype_id, cl_id, clo_id]
+    x_mapforge:
+      primary_id: celltype_id
+      identifiers: [celltype_id, cl_id, clo_id]
+      name_field: name
+      common_columns_hint: [cell_type, celltype, cell, cl_id, clo_id]
+      normalizer: null
+      notes: >
+        Required for single-cell work. Cell Ontology (CL) is the dominant
+        standard; CLO (Cell Line Ontology) carries cell-line-as-cell-type
+        cases (HeLa, K562, etc.).
+
+  Pathway:
+    id_prefixes: [Reactome, KEGG, WikiPathways, GO]
+    slots: [id, name, pathway_id, reactome_id, kegg_id, wikipathways_id, go_id]
+    x_mapforge:
+      primary_id: pathway_id
+      identifiers: [pathway_id, reactome_id, kegg_id, wikipathways_id, go_id]
+      name_field: name
+      common_columns_hint: [pathway, reactome, kegg, wikipathways, go,
+                            go_id, go_term]
+      normalizer: null
+      notes: >
+        Genomics Pathway shape + GO. GO molecular-function and
+        biological-process terms are treated as Pathway so users can query
+        uniformly via (g:Gene)-[:PARTICIPATES_IN]->(p:Pathway). The
+        ontologically-purer alternative (separate GOTerm class) was rejected
+        because it fragments query patterns.
+
+  Disease:
+    id_prefixes: [MONDO, OMIM, MESH, DOID, EFO]
+    slots: [id, name, name_normalized, disease_id, mondo_id, omim_id, mesh_id,
+            doid, efo_id]
+    x_mapforge:
+      primary_id: name_normalized
+      identifiers: [name_normalized, disease_id, mondo_id, omim_id, mesh_id,
+                    doid, efo_id]
+      name_field: name
+      common_columns_hint: [disease, condition, disorder, diagnosis, mondo,
+                            omim, mesh, doid, efo, efo_disease]
+      normalizer: normalize_disease_name
+      notes: >
+        Genomics Disease shape + EFO (TCGA / UK Biobank use EFO for cohort
+        traits). Reuses normalize_disease_name for cross-loader unification.
+        EFO overlap with Condition: both classes declare EFO in id_prefixes
+        because EFO covers both clinical diseases and experimental traits.
+        Routing is disambiguated by column header — `efo_id` (Condition's
+        common_columns_hint) goes to Condition; `efo_disease` (Disease's
+        hint) goes to Disease. Disease's identifiers list still includes
+        `efo_id` so loaders that receive pre-disambiguated EFO disease IDs
+        can merge cleanly on the prefixed-form slot.
+
+  Paper:
+    id_prefixes: [PMID, DOI]
+    slots: [id, title, paper_id, pmid, doi]
+    x_mapforge:
+      primary_id: paper_id
+      identifiers: [paper_id, pmid, doi]
+      name_field: title
+      common_columns_hint: [pmid, doi, citation, reference]
+      normalizer: null
+
+  Protein:
+    id_prefixes: [UniProt]
+    slots: [id, name, protein_id, uniprot_accession, uniprot_id]
+    x_mapforge:
+      primary_id: protein_id
+      identifiers: [protein_id, uniprot_accession, uniprot_id]
+      name_field: name
+      common_columns_hint: [protein, uniprot, uniprot_id]
+      normalizer: null
+      notes: >
+        Carried minimally — needed as the target of TRANSLATES_TO from
+        Transcript. Heavier proteomics workflows belong in a future
+        proteomics template (deferred under #74). Slot list deliberately
+        drops `gene_name` (present in genomics Protein for the DrugBank
+        gene-symbol denormalization); transcriptomics connects Gene to
+        Protein structurally via ENCODES, so the denormalized property
+        is redundant here. `uniprot_accession` omitted from
+        common_columns_hint because RNA-seq exports typically carry only
+        `uniprot` or `uniprot_id` column headers — re-add if a real
+        dataset surfaces the longer form.
+
+  # --- Relationship classes -------------------------------------------
+
+  EXPRESSED_IN:
+    is_a: association
+    subject: Gene
+    object: Sample
+    x_mapforge:
+      properties: [tpm, count, normalized_value, method]
+      status: populated
+      notes: >
+        Per-sample expression measurement — the headline edge for bulk RNA-seq
+        and scRNA per-cell aggregations. `method` distinguishes RNA-seq vs.
+        microarray vs. scRNA. Deliberately distinct from
+        DIFFERENTIALLY_EXPRESSED_IN (different aggregation level — per sample
+        vs. per condition).
+
+  DIFFERENTIALLY_EXPRESSED_IN:
+    is_a: association
+    subject: Gene
+    object: Condition
+    x_mapforge:
+      properties: [log2_fc, p_value, q_value, direction, contrast]
+      status: populated
+      notes: >
+        DE-analysis result edge — log2 fold change of gene expression for the
+        contrast captured in Condition. Distinct from EXPRESSED_IN (per-sample
+        measurement); a Gene typically has many EXPRESSED_IN edges (one per
+        sample) and few DIFFERENTIALLY_EXPRESSED_IN edges (one per contrast).
+
+  SAMPLE_FROM_TISSUE:
+    is_a: association
+    subject: Sample
+    object: Tissue
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: >
+        Anchors a sample to its originating tissue — the primary edge for
+        tissue-specificity queries in GTEx-shaped data and the source of
+        EXPRESSED_IN_TISSUE aggregations.
+
+  SAMPLE_FROM_CELLTYPE:
+    is_a: association
+    subject: Sample
+    object: CellType
+    x_mapforge:
+      properties: [confidence]
+      status: populated
+      notes: For single-cell or sorted-bulk samples.
+
+  SAMPLE_HAS_CONDITION:
+    is_a: association
+    subject: Sample
+    object: Condition
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: n:m — a sample may belong to multiple experimental groups.
+
+  SAMPLE_IN_STUDY:
+    is_a: association
+    subject: Sample
+    object: Study
+    x_mapforge:
+      properties: [role]
+      status: populated
+      notes: >
+        `role` distinguishes case / control / replicate / pooled etc. so
+        downstream queries can filter by sample role within a study.
+
+  STUDY_OF_DISEASE:
+    is_a: association
+    subject: Study
+    object: Disease
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: >
+        Direction is Study → Disease (subject-action-object: "the study
+        is of this disease"), not the inverse. Inverse traversal in Cypher
+        is cheap so the edge is only written one way.
+
+  ENCODES:
+    is_a: association
+    subject: Gene
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Alignment with the genomics template.
+
+  TRANSLATES_TO:
+    is_a: association
+    subject: Transcript
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Alignment with the genomics template.
+
+  PARTICIPATES_IN:
+    is_a: association
+    subject: Gene
+    object: Pathway
+    x_mapforge:
+      properties: [role, evidence_code]
+      status: populated
+      notes: >
+        `evidence_code` carries GO annotation evidence (IDA / IEA / IBA /
+        ISO / etc.) — added here because GO is in this template's Pathway
+        id_prefixes. The genomics template's PARTICIPATES_IN omits this
+        property because genomics Pathway does not include GO; if a future
+        genomics dataset needs GO pathway annotations, the property should
+        be added there too.
+
+  EXPRESSED_IN_TISSUE:
+    is_a: association
+    subject: Gene
+    object: Tissue
+    x_mapforge:
+      properties: [mean_tpm, sample_count]
+      status: populated
+      notes: >
+        Bulk tissue-level expression atlas edge (GTEx-shaped). Aggregates
+        EXPRESSED_IN across samples-from-tissue; both edges coexist because
+        they answer different queries.
+
+  MENTIONED_IN:
+    # `subject: any` is a MapForge sentinel meaning "any node class" — it is
+    # NOT a LinkML class. BioCypher tooling that reads this file must treat
+    # `any` as a wildcard, not a class reference. Carried from the microbiome
+    # template, where the same convention was established.
+    is_a: association
+    subject: any
+    object: Paper
+    x_mapforge:
+      properties: [sentence]
+      status: populated
+      notes: >
+        Reused from microbiome / genomics templates. In transcriptomics
+        the MapForge `subject: any` sentinel covers Gene, Transcript,
+        Sample, Study, Condition, Tissue, CellType, Pathway, Disease,
+        and Protein — every node class in this template may link to
+        Paper via MENTIONED_IN.

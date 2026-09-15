@@ -1,0 +1,31 @@
+clinvar_id,hgnc_id,gene_symbol,variant_name,disease_name,hpo_id,pmid
+ClinVar:17661,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.5266dupC (p.Gln1756Profs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:55638,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.68_69delAG (p.Glu23Valfs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:181960,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.1687C>T (p.Gln563Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:267854,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.3756_3759del (p.Ser1253fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:41215,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.5251C>T (p.Arg1751Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:142855,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.1016+1G>A,Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:125469,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.2475delC (p.Leu826fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:231187,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.5117G>A (p.Arg1699Gln),Hereditary breast ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:55601,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.799delA (p.Ile267fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:182963,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.3531delA (p.Lys1178fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:52363,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.1066A>T (p.Arg356Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:162139,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.213-3C>G,Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:224738,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.2637C>T (p.Trp879Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:127364,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.4327C>T (p.Arg1443Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:54421,HGNC:1100,BRCA1,NM_007294.4(BRCA1):c.1961delA (p.Lys654fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,7894493
+ClinVar:51587,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.6174delT (p.Ser2059fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38153,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.5946delT (p.Ser1983fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:51538,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.8537_8538delAA (p.Lys2846fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38141,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.3847_3848delGT (p.Val1283fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:51545,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.1832delA (p.Asn611fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38155,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.7669del (p.Val2557fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38117,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.771_775delTTACA (p.Asn258fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:51556,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.4284dupA (p.Ala1429fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38145,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.5576_5579delTTAA (p.Ile1859fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:4986,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.9382C>T (p.Arg3128Ter),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38154,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.658_659delGT (p.Val220fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:51551,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.3170_3174delATCAT (p.Tyr1057fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:38148,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.1813dupA (p.Ile605fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:51543,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.6821dupA (p.Tyr2275fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231
+ClinVar:126638,HGNC:1101,BRCA2,NM_000059.4(BRCA2):c.2808_2811delACAA (p.Ala938fs),Hereditary breast and ovarian cancer syndrome,HP:0003002,8091231

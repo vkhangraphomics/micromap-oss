@@ -1,0 +1,78 @@
+[project]
+name = "micromap-mapforge"
+version = "0.1.0.dev1"
+description = "MicroMap MapForge — inspect, map, resolve, emit, and submit data sources to MicroMap's federated KG"
+requires-python = ">=3.11"
+dependencies = [
+  "pyyaml>=6.0.1",
+  "jsonschema>=4.21.0",
+  "click>=8.1.7",
+  "anthropic>=0.40.0",
+  "pyarrow>=15.0.0",
+  # C1 (#76): Excel (.xlsx/.xlsm) inspector — micromap_mapforge/inspect/xlsx.py.
+  "openpyxl>=3.1",
+  # C2 (#76): PDF table extraction — micromap_mapforge/inspect/pdf.py. Pure,
+  # offline, no LLM (deterministic-first; vision fallback is future work).
+  "pdfplumber>=0.11",
+  "neo4j>=5.15,<7",
+  "rapidfuzz>=3.6.0",
+  "httpx>=0.27.0",
+  "biocypher>=0.15.1",
+  # Upper-pinned against a Bioregistry major-version API change. Revisit on
+  # each dep bump; the Layer 3 regression test in
+  # tests/mapping/test_builtin_templates.py catches any synonym-table change
+  # that would break the shipped templates.
+  "bioregistry>=0.13.0,<0.14.0",
+  # Used by schema_config.py:validate_version() for PEP 440 / semver parsing.
+  # Transitive via pip/setuptools on every modern Python install; the
+  # explicit declaration documents the runtime dependency.
+  "packaging>=21.0",
+  # E3 (#78): FormatChecker's built-in set doesn't include `uri` format;
+  # rfc3986-validator adds it so `format: uri` on source.url actually
+  # rejects malformed URLs at validate_mapping time.
+  "rfc3986-validator>=0.1.1",
+]
+
+[project.optional-dependencies]
+# Heavy native-omics readers (#286): HDF5-backed AnnData/.loom (G3), and the
+# home for future biom-format (G2b) / pysam (G1b). Kept out of the core deps so
+# the base install and the dependency-free path stay light — opt in with
+# `pip install micromap-mapforge[omics]`.
+omics = [
+  "anndata>=0.10",
+  "scipy>=1.10",
+]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-snapshot>=0.9.0",
+  "testcontainers[neo4j]>=4.0.0",
+  "respx>=0.21.0",
+  # C2 (#76): generate born-digital PDF table fixtures for tests/inspect/test_pdf.py.
+  "reportlab>=4.0",
+]
+
+[project.scripts]
+mapforge = "micromap_mapforge.cli:main"
+
+[build-system]
+requires = ["setuptools>=69.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["micromap_mapforge*"]
+
+[tool.setuptools.package-data]
+micromap_mapforge = [
+  "mapping/templates/*.yaml",
+  "mapping/mapping.schema.json",
+  "integration/biocypher/ir.schema.json",
+  "catalog/*.yaml",
+]
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: requires Docker + live Neo4j via testcontainers",
+  "docker: requires the federation-test docker compose stack to be running",
+  "network: hits the real network; skipped by default (run with -m network).",
+]
+testpaths = ["tests"]

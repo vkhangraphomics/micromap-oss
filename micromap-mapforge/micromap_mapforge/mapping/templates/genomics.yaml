@@ -1,0 +1,339 @@
+# MicroMap MapForge — genomics discipline template (Theme A2' / #74).
+#
+# Curated complete ontology for human germline & somatic variant interpretation
+# + pathway/phenotype linkage. Anchor sources: ClinVar, gnomAD, OMIM, HGNC,
+# Ensembl, MONDO, HPO, Reactome, PharmGKB.
+#
+# Format: LinkML + x_mapforge extensions, same shape as the microbiome
+# template. See mapping/templates/microbiome.yaml for the canonical example
+# and docs/schemas/discipline-templates.md for the curation guidelines.
+#
+# Cross-discipline alignment notes:
+#   - Gene + Transcript classes are deliberately identical to the
+#     transcriptomics template's so a project loading either gets the same
+#     identifier shape.
+#   - PHARMACO_TARGETS (Drug → Gene) is intentionally renamed from the
+#     microbiome template's TARGETS (Drug → Protein) — see the curation
+#     guideline in docs/schemas/discipline-templates.md.
+
+name: micromap-genomics
+description: MicroMap genomics KG ontology (Gene/Variant/Disease/Phenotype/Pathway/etc.)
+version: "1.1.0"
+last_updated: "2026-06-05"
+
+prefixes:
+  HGNC: https://www.genenames.org/data/gene-symbol-report/
+  NCBIGene: https://www.ncbi.nlm.nih.gov/gene/
+  Ensembl: https://www.ensembl.org/Gene/
+  RefSeq: https://www.ncbi.nlm.nih.gov/refseq/
+  ClinVar: https://www.ncbi.nlm.nih.gov/clinvar/variation/
+  dbSNP: https://www.ncbi.nlm.nih.gov/snp/
+  gnomAD: https://gnomad.broadinstitute.org/variant/
+  HGVS: http://varnomen.hgvs.org/
+  UniProt: https://www.uniprot.org/uniprot/
+  MONDO: http://purl.obolibrary.org/obo/MONDO_
+  OMIM: https://omim.org/entry/
+  MESH: http://id.nlm.nih.gov/mesh/
+  DOID: http://purl.obolibrary.org/obo/DOID_
+  Orphanet: https://www.orpha.net/ORDO/Orphanet_
+  HPO: http://purl.obolibrary.org/obo/HP_
+  Reactome: https://reactome.org/content/detail/
+  KEGG: https://www.genome.jp/dbget-bin/www_bget?
+  WikiPathways: https://www.wikipathways.org/instance/
+  DrugBank: https://go.drugbank.com/drugs/
+  CHEMBL: https://www.ebi.ac.uk/chembl/compound_report_card/
+  RxNorm: https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=
+  PMID: https://pubmed.ncbi.nlm.nih.gov/
+  DOI: https://doi.org/
+  dbGaP: https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=
+
+classes:
+  # --- Node classes ----------------------------------------------------
+  # Order matches the design spec's table for greppability.
+
+  Gene:
+    id_prefixes: [HGNC, NCBIGene, Ensembl]
+    slots: [id, symbol, gene_id, hgnc_id, ncbi_gene_id, ensembl_gene_id]
+    x_mapforge:
+      primary_id: gene_id
+      identifiers: [gene_id, hgnc_id, ncbi_gene_id, ensembl_gene_id, symbol]
+      name_field: symbol
+      common_columns_hint: [gene, gene_id, gene_symbol, hgnc, hgnc_id,
+                            ncbi_gene_id, entrez_id, ensembl_gene_id, symbol]
+      normalizer: null
+      notes: >
+        gene_id is the prefixed form (e.g., "HGNC:5"); hgnc_id / ncbi_gene_id /
+        ensembl_gene_id are the bare identifiers. Designed to align with the
+        transcriptomics Gene class (slice 3) so projects in either discipline
+        see the same Gene merge key. Diverges from the microbiome template's
+        Gene class — microbiome uses `ensembl_id` (no `_gene_`) and includes
+        `hgnc_symbol` / `uniprot_id` in its identifier list. That class is
+        de-facto-empty in practice (CLAUDE.md note on reserved labels and
+        issue #81); cross-template Gene unification is out of scope here.
+
+  Variant:
+    id_prefixes: [ClinVar, dbSNP, gnomAD, HGVS]
+    slots: [id, variant_id, clinvar_id, rs_id, gnomad_id, hgvs_c, hgvs_p,
+            vcf_coords]
+    x_mapforge:
+      primary_id: variant_id
+      identifiers: [variant_id, clinvar_id, rs_id, gnomad_id, hgvs_c, hgvs_p,
+                    vcf_coords]
+      name_field: variant_id
+      # ...plus the native VCF column names (#286 G1): CHROM/POS/ID/REF/ALT
+      # identify a variant. The mapper normalizes case, so `CHROM` matches `chrom`.
+      common_columns_hint: [variant, variant_id, rsid, rs_id, clinvar_id,
+                            gnomad_id, hgvs, hgvs_c, hgvs_p, vcf, vcf_coords,
+                            chrom, pos, ref, alt]
+      normalizer: null
+      notes: >
+        vcf_coords is a non-CURIE practical merge key for variants without
+        curated IDs: format "<chrom>-<pos>-<ref>-<alt>" with 1-based pos and
+        uppercase ref/alt. Chrom is sorted lex (chr1, chr10, ..., chrM, chrX,
+        chrY) to match VCF convention. Use only when curated IDs are absent.
+
+  Genome:
+    id_prefixes: [RefSeq, Ensembl]
+    slots: [id, name, assembly_id, build, species]
+    x_mapforge:
+      primary_id: assembly_id
+      identifiers: [assembly_id, build]
+      name_field: name
+      common_columns_hint: [assembly, genome, build, reference]
+      normalizer: null
+      notes: >
+        Assembly anchor for Variant.LOCATED_ON. Two rows expected per project
+        in practice (one per build: GRCh38, T2T-CHM13). build distinguishes
+        them when assembly_id collisions occur across registries.
+
+  Transcript:
+    id_prefixes: [Ensembl, RefSeq]
+    slots: [id, name, transcript_id, enst_id, refseq_nm, gene_id]
+    x_mapforge:
+      primary_id: transcript_id
+      identifiers: [transcript_id, enst_id, refseq_nm]
+      name_field: name
+      common_columns_hint: [transcript, transcript_id, enst, ensembl_transcript,
+                            refseq, refseq_nm]
+      normalizer: null
+      notes: >
+        Required because Variant.hgvs_c is transcript-relative. Identical
+        shape to the transcriptomics Transcript class.
+
+  Protein:
+    id_prefixes: [UniProt]
+    slots: [id, name, protein_id, uniprot_accession, uniprot_id, gene_name]
+    x_mapforge:
+      primary_id: protein_id
+      identifiers: [protein_id, uniprot_accession, uniprot_id]
+      name_field: name
+      common_columns_hint: [protein, uniprot, uniprot_id, uniprot_accession]
+      normalizer: null
+      notes: >
+        Carried from the microbiome template unchanged. Variant.hgvs_p lands
+        here via OCCURS_IN_TRANSCRIPT → TRANSLATES_TO → Protein.
+
+  Disease:
+    id_prefixes: [MONDO, OMIM, MESH, DOID, Orphanet]
+    slots: [id, name, name_normalized, disease_id, mondo_id, omim_id, mesh_id,
+            doid, orphanet_id]
+    x_mapforge:
+      primary_id: name_normalized
+      identifiers: [name_normalized, disease_id, mondo_id, omim_id, mesh_id,
+                    doid, orphanet_id]
+      name_field: name
+      common_columns_hint: [disease, condition, disorder, diagnosis, mondo,
+                            omim, mesh, doid, orphanet]
+      normalizer: normalize_disease_name
+      notes: >
+        Reuses the microbiome template's normalize_disease_name for
+        cross-loader name unification. ICD10 dropped vs. the microbiome
+        Disease class — genomics literature rarely indexes by ICD10.
+
+  Phenotype:
+    id_prefixes: [HPO]
+    slots: [id, name, phenotype_id, hpo_id]
+    x_mapforge:
+      primary_id: phenotype_id
+      identifiers: [phenotype_id, hpo_id]
+      name_field: name
+      common_columns_hint: [phenotype, hpo, hpo_id, hpo_term]
+      normalizer: null
+      notes: >
+        HPO term — explicitly separate from Disease (HPO term != MONDO
+        disease). The HAS_PHENOTYPE edge links Disease -> Phenotype.
+
+  Pathway:
+    id_prefixes: [Reactome, KEGG, WikiPathways]
+    slots: [id, name, pathway_id, reactome_id, kegg_id, wikipathways_id]
+    x_mapforge:
+      primary_id: pathway_id
+      identifiers: [pathway_id, reactome_id, kegg_id, wikipathways_id]
+      name_field: name
+      common_columns_hint: [pathway, reactome, kegg, wikipathways]
+      normalizer: null
+      notes: >
+        Microbiome Pathway shape + WikiPathways added (dominant pathway source
+        for human GWAS work).
+
+  Drug:
+    id_prefixes: [DrugBank, CHEMBL, RxNorm]
+    slots: [id, name, drug_id, drugbank_id, chembl_id, rxnorm_id]
+    x_mapforge:
+      primary_id: drug_id
+      identifiers: [drug_id, drugbank_id, chembl_id, rxnorm_id]
+      name_field: name
+      common_columns_hint: [drug, compound, medication, drugbank, chembl,
+                            rxnorm, rxcui]
+      normalizer: null
+      notes: >
+        Same primary_id and identifier set as the microbiome Drug class
+        (curation guideline 2: shared concept, shared shape). The
+        common_columns_hint list adds `rxnorm` and `rxcui` because
+        pharmacogenomics datasets often carry RxNorm concept identifiers
+        in those exact column headers (PharmGKB, FDA orange book).
+
+  Paper:
+    id_prefixes: [PMID, DOI]
+    slots: [id, title, paper_id, pmid, doi]
+    x_mapforge:
+      primary_id: paper_id
+      identifiers: [paper_id, pmid, doi]
+      name_field: title
+      common_columns_hint: [pmid, doi, citation, reference]
+      normalizer: null
+
+  Study:
+    id_prefixes: [PMID, dbGaP]
+    slots: [id, name, study_id, pmid, dbgap_id]
+    x_mapforge:
+      primary_id: study_id
+      identifiers: [study_id, pmid, dbgap_id]
+      name_field: name
+      common_columns_hint: [study, project, dataset, cohort, dbgap]
+      normalizer: null
+      notes: >
+        dbGaP for cohort studies. Same class name as the transcriptomics
+        Study but a different prefix set — see the "shared concepts,
+        different prefix sets" curation guideline in
+        docs/schemas/discipline-templates.md.
+
+  # --- Relationship classes -------------------------------------------
+  # LinkML convention: relationships are classes with `is_a: association`.
+
+  LOCATED_IN_GENE:
+    is_a: association
+    subject: Variant
+    object: Gene
+    x_mapforge:
+      properties: [consequence, exon]
+      status: populated
+
+  LOCATED_ON:
+    is_a: association
+    subject: Variant
+    object: Genome
+    x_mapforge:
+      properties: [chrom, pos, build]
+      status: populated
+
+  OCCURS_IN_TRANSCRIPT:
+    is_a: association
+    subject: Variant
+    object: Transcript
+    x_mapforge:
+      properties: [hgvs_c, consequence]
+      status: populated
+
+  ENCODES:
+    is_a: association
+    subject: Gene
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+
+  TRANSLATES_TO:
+    is_a: association
+    subject: Transcript
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+
+  ASSOCIATED_WITH_DISEASE:
+    is_a: association
+    subject: Variant
+    object: Disease
+    x_mapforge:
+      properties: [clinical_significance, review_status, evidence_level]
+      status: populated
+      notes: ClinVar-shaped variant→disease evidence.
+
+  GENE_ASSOCIATED_WITH_DISEASE:
+    is_a: association
+    subject: Gene
+    object: Disease
+    x_mapforge:
+      properties: [inheritance, evidence_level]
+      status: populated
+      notes: >
+        OMIM-shaped gene→disease evidence. Deliberately separate from
+        Variant→Disease ASSOCIATED_WITH_DISEASE — different aggregation level,
+        different query semantics.
+
+  HAS_PHENOTYPE:
+    is_a: association
+    subject: Disease
+    object: Phenotype
+    x_mapforge:
+      properties: [frequency]
+      status: populated
+
+  PARTICIPATES_IN:
+    is_a: association
+    subject: Gene
+    object: Pathway
+    x_mapforge:
+      properties: [role]
+      status: populated
+
+  PHARMACO_TARGETS:
+    is_a: association
+    subject: Drug
+    object: Gene
+    x_mapforge:
+      properties: [action_type, evidence_level]
+      status: populated
+      notes: >
+        PharmGKB-shaped drug→gene relationship. Deliberately renamed from the
+        microbiome template's TARGETS (Drug → Protein) — pharmacogenomics
+        anchors at the gene level (clinical actionability is gene-resolution),
+        the microbiome anchors at the protein level (mechanism of action).
+        Disambiguation rationale lives in
+        docs/schemas/discipline-templates.md under "Curation guidelines".
+
+  MENTIONED_IN:
+    # `subject: any` is a MapForge sentinel meaning "any node class" — it is
+    # NOT a LinkML class. BioCypher tooling that reads this file must treat
+    # `any` as a wildcard, not a class reference. Carried from the microbiome
+    # template, where the same convention was established.
+    is_a: association
+    subject: any
+    object: Paper
+    x_mapforge:
+      properties: [sentence]
+      status: populated
+      notes: >
+        Reused from the microbiome template. The MapForge `subject: any`
+        sentinel covers: variants, genes, diseases, phenotypes, drugs, and
+        pathways — each links to Paper via MENTIONED_IN.
+
+  REPORTED_IN:
+    is_a: association
+    subject: Variant
+    object: Study
+    x_mapforge:
+      properties: [cohort_size, allele_frequency]
+      status: populated
+      notes: gnomAD/cohort-style variant→study evidence.

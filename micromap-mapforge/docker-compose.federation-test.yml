@@ -1,0 +1,108 @@
+# Two-stack federation-test orchestration. Used only by
+# tests/integration/test_federation_e2e_docker.py under @pytest.mark.docker.
+#
+#   hub-*    = central MicroMap ("micromap-core")
+#   remote-* = a fake federated MicroMap (stands in for "acme-pharma")
+#
+# Distinct host port mappings let both stacks run on the same machine.
+# A shared docker network lets hub-api reach remote-api by service name
+# during federated query fan-out.
+#
+# Conventions mirrored from the root docker-compose.yml: neo4j:5.15.0 image,
+# KEY=VALUE env-var style, cypher-shell-based healthcheck.
+
+services:
+  hub-neo4j:
+    image: neo4j:5.15.0
+    ports:
+      - "17474:7474"
+      - "17687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/hubpassword
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    networks:
+      - federation-test
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "hubpassword", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  hub-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    depends_on:
+      hub-neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=bolt://hub-neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=hubpassword
+      - NEO4J_DATABASE=neo4j
+      - FEDERATION_ENABLED=true
+      - FEDERATION_ADMIN_TOKEN=hub-admin-token
+      - FEDERATION_ALLOW_INSECURE_BASE_URL=true
+      - E2E_ACME_FEDERATION_TOKEN=ignored-by-remote
+      - API_PORT=8200
+      - CORS_ORIGINS=
+    ports:
+      - "18200:8200"
+    networks:
+      - federation-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+
+  remote-neo4j:
+    image: neo4j:5.15.0
+    ports:
+      - "27474:7474"
+      - "27687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/remotepassword
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    networks:
+      - federation-test
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "remotepassword", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  remote-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    depends_on:
+      remote-neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=bolt://remote-neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=remotepassword
+      - NEO4J_DATABASE=neo4j
+      - FEDERATION_ENABLED=false
+      - API_PORT=8200
+      - CORS_ORIGINS=
+    ports:
+      - "28200:8200"
+    networks:
+      - federation-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8200/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+
+networks:
+  federation-test:
+    driver: bridge

@@ -1,0 +1,52 @@
+# Neo4j Enterprise — Fabric / composite database proof for #168 phase 2.
+#
+# Topology:
+#   graphomics-neo4j   — single Enterprise instance hosting:
+#     DB: neo4j        — system DB (default)
+#     DB: micromap     — subgraph 1: microbe→disease (MicroMap)
+#     DB: primekg      — subgraph 2: disease↔drug/gene (PrimeKG slice)
+#     DB: graphomics   — COMPOSITE database unioning micromap + primekg
+#
+# The Neo4j MCP server points at `graphomics` (the composite).
+# A single Cypher query traverses both constituent DBs.
+#
+# Neo4j Enterprise eval: accepted via NEO4J_ACCEPT_LICENSE_AGREEMENT=eval
+# (30-day dev/test evaluation; not for production).
+#
+# Usage:
+#   docker compose -f docker-compose.fabric.yml up -d
+#   # wait ~30s for Neo4j to be ready, then:
+#   docker compose -f docker-compose.fabric.yml exec graphomics-neo4j sh /setup.sh
+#   # then run the MCP proof:
+#   NEO4J_URI=bolt://localhost:7690 NEO4J_USERNAME=neo4j \
+#   NEO4J_PASSWORD=fabricpass123 NEO4J_DATABASE=graphomics \
+#   python3 probe-fabric.py
+
+services:
+  graphomics-neo4j:
+    image: neo4j:5-enterprise
+    container_name: graphomics-neo4j
+    ports:
+      - "7690:7687"   # Bolt
+      - "7476:7474"   # Browser (inspection)
+    environment:
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=eval
+      - NEO4J_AUTH=neo4j/fabricpass123
+      - NEO4J_server_memory_heap_initial__size=512m
+      - NEO4J_server_memory_heap_max__size=1g
+      - NEO4J_server_memory_pagecache_size=512m
+    volumes:
+      - fabric-neo4j-data:/data
+      - ./setup.sh:/setup.sh:ro
+      - ./seed/01-micromap.cypher:/seed/01-micromap.cypher:ro
+      - ./seed/02-primekg.cypher:/seed/02-primekg.cypher:ro
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "fabricpass123", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  fabric-neo4j-data:

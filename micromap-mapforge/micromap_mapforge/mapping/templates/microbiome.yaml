@@ -1,0 +1,399 @@
+# MicroMap MapForge — default schema_config.yaml (LinkML format + x_mapforge extensions).
+#
+# Theme A1' / issue #74: this file replaces `mapping/ontology.yaml` as the
+# canonical project ontology surface (3b-3b / #135 will retarget mapper +
+# resolver registry to consume it). For now it ships as the package-baked
+# DEFAULT: projects without a project-level `schema_config.yaml` use this
+# microbiome shape, ported faithfully from the 2026-04-27 ontology.yaml
+# snapshot.
+#
+# Format notes:
+#   - LinkML-flavored YAML; consumable by BioCypher tooling that reads
+#     LinkML schemas. The existing IR tests (test_biolink_schema_config_validates,
+#     test_custom_linkml_schema_config_validates) use this same shape.
+#   - MapForge-specific fields (the things BioCypher's vocabulary doesn't
+#     express — common_columns_hint for the mapper's column-name heuristics,
+#     normalizer for entity-resolution, primary_id when it differs from
+#     LinkML's `id_prefixes`-derived merge key, projection_fields for the
+#     resolver registry) live under `x_mapforge:` per-class/per-relationship.
+#     This namespace keeps the schema round-trippable through BioCypher
+#     tooling while letting MapForge consumers read its extra hints.
+#
+# Source: ports `mapping/ontology.yaml` (version 2026-04-27). When ontology.yaml
+# is retired in #135, this file becomes the sole source of truth.
+
+name: micromap-microbiome
+description: MicroMap microbiome KG ontology (Taxon/Disease/Metabolite/etc.)
+version: "1.1.0"
+last_updated: "2026-04-27"
+
+prefixes:
+  NCBITaxon: http://purl.obolibrary.org/obo/NCBITaxon_
+  MONDO: http://purl.obolibrary.org/obo/MONDO_
+  DOID: http://purl.obolibrary.org/obo/DOID_
+  MESH: http://id.nlm.nih.gov/mesh/
+  OMIM: https://omim.org/entry/
+  UMLS: https://uts.nlm.nih.gov/uts/umls/concept/
+  ICD10: https://www.icd10data.com/ICD10CM/Codes/
+  HMDB: https://hmdb.ca/metabolites/
+  KEGG: https://www.genome.jp/dbget-bin/www_bget?
+  CHEBI: http://purl.obolibrary.org/obo/CHEBI_
+  PUBCHEM: https://pubchem.ncbi.nlm.nih.gov/compound/
+  METACYC: https://metacyc.org/compound?orgid=META&id=
+  DrugBank: https://go.drugbank.com/drugs/
+  CHEMBL: https://www.ebi.ac.uk/chembl/compound_report_card/
+  RxNorm: https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=
+  HGNC: https://www.genenames.org/data/gene-symbol-report/
+  UniProt: https://www.uniprot.org/uniprot/
+  Ensembl: https://www.ensembl.org/Gene/
+  Reactome: https://reactome.org/content/detail/
+  PMID: https://pubmed.ncbi.nlm.nih.gov/
+  DOI: https://doi.org/
+  UBERON: http://purl.obolibrary.org/obo/UBERON_
+
+classes:
+  # --- Node classes ----------------------------------------------------
+
+  Taxon:
+    id_prefixes: [NCBITaxon]
+    slots: [id, name, ncbi_tax_id, gtdb_id, genus, species, phylum, rank]
+    x_mapforge:
+      primary_id: taxon_id
+      identifiers: [taxon_id, ncbi_tax_id, gtdb_id]
+      name_field: name
+      # ...plus BIOM / classic-OTU-table feature columns (#286 G2): a BIOM
+      # observation is a taxon, keyed by its feature id and carrying a taxonomy
+      # lineage (structured into genus/species by inspect/structured.py).
+      common_columns_hint: [tax_id, taxid, ncbi_tax_id, organism, species,
+        observation_id, otu_id, feature_id, asv_id, taxonomy]
+      normalizer: null
+      notes: >
+        taxon_id is the prefixed form (e.g., "NCBITaxon:562"); ncbi_tax_id
+        is the bare integer. Loaders also set genus/species/phylum/rank as
+        separate properties for taxonomic-tree queries.
+
+  Disease:
+    id_prefixes: [MONDO, DOID, MESH, OMIM, UMLS, ICD10]
+    slots: [id, name, name_normalized, disease_id, doid, mesh_id, omim_id,
+            umls_cui, icd10, icd10_code, mondo_id]
+    x_mapforge:
+      primary_id: name_normalized
+      identifiers: [name_normalized, disease_id, doid, mesh_id, omim_id,
+                    umls_cui, icd10, icd10_code, mondo_id]
+      name_field: name
+      common_columns_hint: [disease, condition, disorder, diagnosis]
+      normalizer: normalize_disease_name
+      resolver: { strategy: disease }
+      notes: >
+        All 7 disease loaders MERGE on name_normalized. disease_id is set
+        as a property and has a UNIQUE schema constraint, but is not the
+        effective merge key. Loader-side fix tracked separately.
+
+  Compound:
+    is_a: named thing
+    id_prefixes: [HMDB, CHEBI, PUBCHEM, KEGG, METACYC]
+    slots:
+      - id
+      - name
+      - compound_id
+      - inchi_key
+      - pubchem_cid
+      - hmdb_id
+      - chebi_id
+      - kegg_id
+      - cas_number
+      - chemical_formula
+      - molecular_weight
+      - smiles
+      - inchi
+    x_mapforge:
+      primary_id: compound_id
+      identifiers:
+        - compound_id
+        - inchi_key
+        - pubchem_cid
+        - hmdb_id
+        - chebi_id
+        - kegg_id
+        - cas_number
+        - name_lower
+      name_field: name
+      common_columns_hint:
+        - compound
+        - compound_id
+        - metabolite
+        - metabolite_id
+        - chemical
+        - inchi_key
+        - inchikey
+        - pubchem_cid
+        - hmdb_id
+        - chebi_id
+        - kegg_id
+      normalizer: null
+      status: populated
+      notes: |
+        Canonical cross-discipline chemical entity class. compound_id is a
+        prefixed CURIE: INCHIKEY:<inchi_key> if present, else PUBCHEM:<pubchem_cid>.
+        All loaders call resolve_compound_id() from database.ingestion.utils.
+        Replaces the split Metabolite (HMDB/KEGG/CHEBI/PUBCHEM) and Compound
+        (PUBCHEM-only) classes that existed prior to #146.
+        produces_loader still merges on name_lower (legacy path — disjoint-node
+        issue tracked separately).
+
+  Drug:
+    id_prefixes: [DrugBank, CHEMBL, RxNorm]
+    slots: [id, name, drug_id, drugbank_id, chembl_id, rxnorm_id]
+    x_mapforge:
+      primary_id: drug_id
+      identifiers: [drug_id, drugbank_id, chembl_id, rxnorm_id]
+      name_field: name
+      common_columns_hint: [drug, compound, medication]
+      normalizer: null
+
+  Gene:
+    id_prefixes: [HGNC, NCBIGene, Ensembl]
+    slots: [id, symbol, gene_id, ncbi_gene_id, ensembl_id, hgnc_symbol, uniprot_id]
+    x_mapforge:
+      primary_id: gene_id
+      identifiers: [gene_id, ncbi_gene_id, ensembl_id, hgnc_symbol, uniprot_id]
+      name_field: symbol
+      common_columns_hint: [gene, gene_id, gene_symbol]
+      normalizer: null
+
+  Protein:
+    id_prefixes: [UniProt]
+    slots: [id, name, protein_id, uniprot_accession, uniprot_id, gene_name]
+    x_mapforge:
+      primary_id: protein_id
+      identifiers: [protein_id, uniprot_accession, uniprot_id]
+      name_field: name
+      common_columns_hint: [protein, uniprot]
+      normalizer: null
+      notes: >
+        protein_id is prefixed (e.g., "UniProt:P12345"); uniprot_id /
+        uniprot_accession are the bare accession. drugbank_loader sets
+        gene_name as a property; reactome_loader queries Protein by name
+        (not uniprot) — cross-source lookup gaps tracked separately.
+
+  Pathway:
+    id_prefixes: [KEGG, Reactome]
+    slots: [id, name, pathway_id, kegg_id, reactome_id]
+    x_mapforge:
+      primary_id: pathway_id
+      identifiers: [pathway_id, kegg_id, reactome_id]
+      name_field: name
+      common_columns_hint: [pathway, kegg, reactome]
+      normalizer: null
+      notes: >
+        pathway_id is prefixed (e.g., "KEGG:ko00650", "REACT:R-HSA-...");
+        kegg_id and reactome_id are the bare identifiers. Cross-database
+        collisions on the numeric suffix are theoretically possible.
+
+  Paper:
+    id_prefixes: [PMID, DOI]
+    slots: [id, title, paper_id, pmid, doi]
+    x_mapforge:
+      primary_id: paper_id
+      identifiers: [paper_id, pmid, doi]
+      name_field: title
+      common_columns_hint: [pmid, doi, citation, reference]
+      normalizer: null
+      resolver: { strategy: paper }
+
+  BodySite:
+    id_prefixes: [UBERON]
+    slots: [id, name, bodysite_id, uberon_id]
+    x_mapforge:
+      primary_id: bodysite_id
+      identifiers: [bodysite_id, uberon_id]
+      name_field: name
+      common_columns_hint: [body_site, tissue, site]
+      normalizer: null
+      notes: >
+        Currently created only by mbodymap_loader. If that loader does not
+        run, no BodySite nodes exist and FOUND_IN edges have no targets.
+
+  Assay:
+    id_prefixes: [PUBCHEM]
+    slots: [id, name, assay_id, aid]
+    x_mapforge:
+      primary_id: assay_id
+      identifiers: [assay_id, aid]
+      name_field: name
+      common_columns_hint: [assay, aid, bioassay]
+      normalizer: null
+      notes: >
+        Created by pubchem_loader as the target of TESTED_IN edges from
+        Compound. Schema-level constraints not declared in
+        database/neo4j_schema.py.
+
+  Study:
+    id_prefixes: [PMID]
+    slots: [id, name, study_id, pmid]
+    x_mapforge:
+      primary_id: study_id
+      identifiers: [study_id, pmid]
+      name_field: name
+      common_columns_hint: [study, project, dataset]
+      normalizer: null
+      notes: >
+        Created by bugsigdb_loader. Represents published microbiome
+        experiments. Has a UNIQUE schema constraint.
+
+  # --- Relationship classes -------------------------------------------
+  # LinkML convention: relationships are classes with `is_a: association`.
+  # subject/object give the endpoint labels. x_mapforge.status retains
+  # the populated/planned distinction from ontology.yaml.
+
+  ASSOCIATED_WITH_DISEASE:
+    is_a: association
+    subject: Taxon
+    object: Disease
+    x_mapforge:
+      properties: [effect_size, p_value, evidence_level, sample_size, direction]
+      status: populated
+
+  PRODUCES:
+    is_a: association
+    subject: Taxon
+    object: Compound
+    x_mapforge:
+      properties: [evidence_level, notes, source]
+      status: populated
+
+  PARTICIPATES_IN:
+    is_a: association
+    subject: Compound
+    object: Pathway
+    x_mapforge:
+      properties: [evidence_source, chebi_id]
+      status: populated
+
+  HAS_GENE:
+    is_a: association
+    subject: Taxon
+    object: Gene
+    x_mapforge:
+      properties: []
+      status: populated
+
+  MENTIONED_IN:
+    is_a: association
+    subject: any
+    object: Paper
+    x_mapforge:
+      properties: [sentence]
+      status: populated
+      notes: >
+        `subject: any` — pubmed_loader links Diseases, Taxa, and other
+        entities to Paper nodes via this relationship.
+
+  FOUND_IN:
+    is_a: association
+    subject: Taxon
+    object: BodySite
+    x_mapforge:
+      properties: [abundance]
+      status: populated
+
+  HAS_PARENT:
+    is_a: association
+    subject: Taxon
+    object: Taxon
+    x_mapforge:
+      properties: [rank]
+      status: populated
+      notes: >
+        NCBI taxonomy hierarchy. Direction: child → parent. Replaces the
+        semantically inverse CHILD_OF that was declared in earlier
+        versions of ontology.yaml but never created by any loader.
+
+  TARGETS:
+    is_a: association
+    subject: Drug
+    object: Protein
+    x_mapforge:
+      properties: [action_type, mechanism]
+      status: populated
+      notes: Created by drugbank_loader and chembl_loader.
+
+  METABOLIZED_BY:
+    is_a: association
+    subject: Drug
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Created by drugbank_loader. CYP-enzyme drug metabolism.
+
+  TRANSPORTED_BY:
+    is_a: association
+    subject: Drug
+    object: Protein
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Created by drugbank_loader. Drug-transporter interactions.
+
+  LINKED_TO_DISEASE:
+    is_a: association
+    subject: Compound
+    object: Disease
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Created by hmdb_loader.
+
+  PROCESSES:
+    is_a: association
+    subject: Protein
+    object: Compound
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: Created by hmdb_loader. Enzyme-substrate relationships.
+
+  TESTED_IN:
+    is_a: association
+    subject: Compound
+    object: Assay
+    x_mapforge:
+      properties: [activity]
+      status: populated
+      notes: Created by pubchem_loader.
+
+  SAME_AS:
+    is_a: association
+    subject: Compound
+    object: Drug
+    x_mapforge:
+      properties: []
+      status: populated
+      notes: >
+        Created by pubchem_loader to link compounds to drugs that share an
+        InChI key. The first cross-label deduplication signal in the
+        graph; could be extended for Compound↔Metabolite unification.
+
+  METABOLIZES_DRUG:
+    is_a: association
+    subject: Taxon
+    object: Drug
+    x_mapforge:
+      properties: [effect]
+      status: planned
+      notes: >
+        Declared as part of the intended schema; not currently emitted by
+        any loader. Microbiome drug-metabolism evidence is captured today
+        via Taxon→Metabolite→(implicit drug link) instead.
+
+  AFFECTS_TAXON:
+    is_a: association
+    subject: Drug
+    object: Taxon
+    x_mapforge:
+      properties: [effect]
+      status: planned
+      notes: >
+        Declared as part of the intended schema; not currently emitted by
+        any loader. The inverse direction of METABOLIZES_DRUG.

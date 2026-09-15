@@ -1,0 +1,31 @@
+uniprot_id,gene_symbol,protein_name,disease_name,kegg_pathway_id,uberon_id
+P04637,TP53,Cellular tumor antigen p53,Colorectal carcinoma,KEGG:hsa04115,UBERON:0001969
+P00533,EGFR,Epidermal growth factor receptor,Colorectal carcinoma,KEGG:hsa01521,UBERON:0001969
+P15056,BRAF,Serine/threonine-protein kinase B-raf,Melanoma,KEGG:hsa05218,UBERON:0001969
+P01116,KRAS,GTPase KRas,Colorectal carcinoma,KEGG:hsa04012,UBERON:0001969
+P42336,PIK3CA,Phosphatidylinositol 4-5-bisphosphate 3-kinase catalytic subunit alpha isoform,Breast carcinoma,KEGG:hsa04151,UBERON:0001969
+P60484,PTEN,Phosphatidylinositol 3-4-5-trisphosphate 3-phosphatase and dual-specificity protein phosphatase PTEN,Prostate carcinoma,KEGG:hsa04151,UBERON:0001969
+P00441,SOD1,Superoxide dismutase [Cu-Zn],Amyotrophic lateral sclerosis,KEGG:hsa04146,UBERON:0001969
+P10636,MAPT,Microtubule-associated protein tau,Alzheimer disease,KEGG:hsa05010,UBERON:0001969
+P37840,SNCA,Alpha-synuclein,Parkinson disease,KEGG:hsa05012,UBERON:0001969
+P02649,APOE,Apolipoprotein E,Alzheimer disease,KEGG:hsa04978,UBERON:0001969
+P01160,NPPA,Natriuretic peptide A,Heart failure,KEGG:hsa04022,UBERON:0001969
+P16860,NPPB,Natriuretic peptide B,Heart failure,KEGG:hsa04022,UBERON:0001969
+P09874,PARP1,Poly [ADP-ribose] polymerase 1,Breast carcinoma,KEGG:hsa03410,UBERON:0001969
+P38936,CDKN1A,Cyclin-dependent kinase inhibitor 1,Colorectal carcinoma,KEGG:hsa04110,UBERON:0001969
+P11802,CDK4,Cyclin-dependent kinase 4,Melanoma,KEGG:hsa04110,UBERON:0001969
+P24385,CCND1,G1/S-specific cyclin-D1,Breast carcinoma,KEGG:hsa04110,UBERON:0001969
+P04637,TP53,Cellular tumor antigen p53,Breast carcinoma,KEGG:hsa04115,UBERON:0001969
+Q9Y6Q9,FCGBP,IgGFc-binding protein,Colorectal carcinoma,KEGG:hsa04640,UBERON:0001969
+P00338,LDHA,L-lactate dehydrogenase A chain,Colorectal carcinoma,KEGG:hsa00010,UBERON:0001969
+P06396,GSN,Gelsolin,Amyloidosis,KEGG:hsa04810,UBERON:0001969
+P02751,FN1,Fibronectin,Colorectal carcinoma,KEGG:hsa04510,UBERON:0001969
+P35579,MYH9,Myosin-9,Macrothrombocytopenia,KEGG:hsa04810,UBERON:0001969
+P05106,ITGB3,Integrin beta-3,Thrombasthenia,KEGG:hsa04510,UBERON:0001969
+P00747,PLG,Plasminogen,Thrombosis,KEGG:hsa04610,UBERON:0001969
+P00734,F2,Prothrombin,Thrombosis,KEGG:hsa04610,UBERON:0001969
+P02671,FGA,Fibrinogen alpha chain,Afibrinogenemia,KEGG:hsa04610,UBERON:0001969
+P02675,FGB,Fibrinogen beta chain,Afibrinogenemia,KEGG:hsa04610,UBERON:0001969
+P68871,HBB,Hemoglobin subunit beta,Sickle cell disease,KEGG:hsa05230,UBERON:0001969
+P69905,HBA1,Hemoglobin subunit alpha,Alpha-thalassemia,KEGG:hsa05230,UBERON:0001969
+P04217,A1BG,Alpha-1B-glycoprotein,Colorectal carcinoma,KEGG:hsa04640,UBERON:0001969

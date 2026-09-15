@@ -1,0 +1,31 @@
+{
+  "organization_id": "test-org",
+  "batch_doid": [
+    {
+      "merge_value": "8778",
+      "props": {
+        "provenance_source": "study",
+        "provenance_method": "mined",
+        "confidence": "INFERRED"
+      }
+    },
+    {
+      "merge_value": "8577",
+      "props": {
+        "provenance_source": "study",
+        "provenance_method": "mined",
+        "confidence": "INFERRED"
+      }
+    }
+  ],
+  "batch_name__contributor": [
+    {
+      "merge_value": "IBS",
+      "props": {
+        "provenance_source": "study",
+        "provenance_method": "mined",
+        "confidence": "INFERRED"
+      }
+    }
+  ]
+}

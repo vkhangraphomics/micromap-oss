@@ -1,0 +1,27 @@
+# Keep the docker build context small.
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+.tox
+.venv
+venv
+build
+dist
+*.log
+.git
+.gitignore
+.github
+docs
+tests
+demo
+docker-compose*.yml
+.dockerignore
+Dockerfile
+README.md
+CITATION.cff

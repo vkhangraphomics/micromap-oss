@@ -1,0 +1,8 @@
+source:
+  name: "missing_format_and_path"
+entities:
+  - label: Taxon
+    # missing match_on
+    columns:
+      ncbi_tax_id: tax_id
+relationships: []

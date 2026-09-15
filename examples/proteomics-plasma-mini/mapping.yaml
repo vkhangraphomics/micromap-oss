@@ -1,0 +1,68 @@
+source:
+  name: "uniprot_plasma_proteins_mini"
+  format: csv
+  path: "plasma_proteins.csv"
+  description: >
+    30 curated UniProt Swiss-Prot human plasma proteins with disease associations,
+    KEGG pathway annotations, and blood plasma tissue context (UBERON:0001969).
+
+entities:
+  - label: Protein
+    match_on: protein_id
+    columns:
+      protein_id: uniprot_id
+      uniprot_accession: uniprot_id
+      gene_name: gene_symbol
+      name: protein_name
+    confidence: EXTRACTED
+
+  - label: Gene
+    match_on: gene_id
+    columns:
+      gene_id: gene_symbol
+      symbol: gene_symbol
+    confidence: EXTRACTED
+
+  - label: Disease
+    match_on: name_normalized
+    normalizer: normalize_disease_name
+    columns:
+      name: disease_name
+    confidence: EXTRACTED
+
+  - label: Pathway
+    match_on: pathway_id
+    columns:
+      pathway_id: kegg_pathway_id
+      kegg_id: kegg_pathway_id
+    confidence: EXTRACTED
+
+  - label: Tissue
+    match_on: tissue_id
+    columns:
+      tissue_id: uberon_id
+      uberon_id: uberon_id
+    confidence: EXTRACTED
+
+relationships:
+  - type: ASSOCIATED_WITH_DISEASE
+    from: "Protein(protein_id=row.uniprot_id)"
+    to:   "Disease(name_normalized=normalize(row.disease_name))"
+    properties:
+      evidence_level: { constant: literature_curated }
+    confidence: EXTRACTED
+
+  - type: ENCODES
+    from: "Gene(gene_id=row.gene_symbol)"
+    to:   "Protein(protein_id=row.uniprot_id)"
+    confidence: EXTRACTED
+
+  - type: PARTICIPATES_IN
+    from: "Protein(protein_id=row.uniprot_id)"
+    to:   "Pathway(pathway_id=row.kegg_pathway_id)"
+    confidence: EXTRACTED
+
+  - type: SAMPLE_FROM_TISSUE
+    from: "Protein(protein_id=row.uniprot_id)"
+    to:   "Tissue(tissue_id=row.uberon_id)"
+    confidence: EXTRACTED

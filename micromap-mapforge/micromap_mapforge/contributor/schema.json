@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://graphomics.com/schemas/micromap-mapforge/contributor.schema.json",
+  "title": "MapForge Contributor Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contributor", "tier"],
+  "properties": {
+    "contributor": { "type": "string", "minLength": 1 },
+    "tier":        { "enum": ["internal", "partner", "external"] },
+    "sensitivity": { "enum": ["public", "internal", "pii"] }
+  }
+}

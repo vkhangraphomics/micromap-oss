@@ -1,0 +1,18 @@
+source:
+  name: study
+  format: tsv
+  path: tests\fixtures\study.tsv
+  sha256: 4bafd07134d07050f785e58d009353cae2db4f81502ce6599c1e1f51f66e8efe
+entities:
+- label: Taxon
+  match_on: name
+  columns:
+    name: tax_id
+  confidence: INFERRED
+- label: Disease
+  match_on: name
+  columns:
+    name: condition
+  confidence: INFERRED
+  normalizer: normalize_disease_name
+relationships: []

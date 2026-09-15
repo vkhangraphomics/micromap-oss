@@ -1,0 +1,28 @@
+source:
+  name: partner_gut_study_2026
+  format: tsv
+  path: partner_gut_study_2026.tsv
+entities:
+- label: Taxon
+  match_on: ncbi_tax_id
+  columns:
+    ncbi_tax_id: ncbi_tax_id
+    name: organism
+  confidence: EXTRACTED
+- label: Disease
+  match_on: name_normalized
+  normalizer: normalize_disease_name
+  columns:
+    name: disease
+  confidence: EXTRACTED
+relationships:
+- type: ASSOCIATED_WITH_DISEASE
+  from: Taxon(ncbi_tax_id=row.ncbi_tax_id)
+  to: Disease(name_normalized=normalize(row.disease))
+  properties:
+    effect_size: log2fc
+    p_value: p_value
+    direction: direction
+    evidence_level:
+      constant: partner-study
+  confidence: EXTRACTED

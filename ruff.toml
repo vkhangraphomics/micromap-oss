@@ -1,0 +1,54 @@
+# Ruff configuration for the MicroMap / MapForge monorepo.
+#
+# Enforced rules — what the CI `lint` job in .github/workflows/ci.yml
+# fails on. Keep this list tight: the goal is to lock in the cleanups
+# from #162 and #164, and any new bug-shaped finding the rules catch
+# going forward. Style-only rules (formatting, import sorting, etc.)
+# are intentionally NOT enforced here — those belong to a separate
+# decision about repo-wide auto-formatting.
+#
+# Rule families currently enforced:
+#   - F   : pyflakes (all subrules) — semantic errors. Covers F401
+#           (unused-import), F541 (extraneous f-string prefix), F601
+#           (multi-value-repeated-key-literal — caught real data-loss
+#           bug, see #165), F811 (redefined-while-unused), F841
+#           (unused local), and the rest of pyflakes' F-codes.
+#   - B904: flake8-bugbear "raise-without-from-inside-except" — keeps
+#           exception causes attached for debugging.
+
+target-version = "py311"
+
+extend-exclude = [
+    "tmp",
+    "build",
+    "dist",
+    ".venv",
+    "venv",
+    "terraform",
+    "node_modules",
+    "**/.terraform",
+    "**/__pycache__",
+]
+
+[lint]
+# Enforced rule families. Keep this list tight — only rules covering
+# real semantic-correctness or security issues we've already cleaned,
+# not style nits.
+#
+#   F        : all pyflakes (unused imports, dict-key collisions, etc.)
+#   B904     : raise-without-from-inside-except
+#   B905     : zip() without explicit `strict=` — silent truncation hazard
+#   SIM115   : open() outside a context manager — resource leak hazard
+#   SIM222   : `expr or True` (always True) — bypassed/dead conditions
+#   S113     : requests call without timeout — production hang hazard
+#   S202     : tarfile.extractall without filter — extraction-path-traversal hazard
+#   RUF100   : unused `noqa` directive — stale suppression rots silently
+#   RUF059   : unused unpacked variable — catches tuple-unpack mistakes
+#   PT022    : pytest fixture yields without teardown — should be `return`
+#   TRY400   : logging.error inside `except:` should be logging.exception
+#              (captures traceback for free)
+#   DTZ005   : datetime.now() without tz — timezone-ambiguous serialization +
+#              DST-correctness hazard. Use datetime.now(timezone.utc).
+#   C414     : sorted(list(x)) — redundant list() materialization; sorted()
+#              accepts iterables directly.
+select = ["F", "B904", "B905", "SIM115", "SIM222", "S113", "S202", "RUF100", "RUF059", "PT022", "TRY400", "DTZ005", "C414"]

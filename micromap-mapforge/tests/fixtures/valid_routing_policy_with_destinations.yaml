@@ -1,0 +1,21 @@
+rules:
+  - match: { tier: partner, min_rows: 100000 }
+    destination: new-federated-instance
+  - match: { tier: internal }
+    destination: micromap-core
+
+default:
+  destination: registry-only
+
+destinations:
+  new-federated-instance:
+    federation:
+      source_id: acme-pharma
+      display_name: "Acme Pharma"
+      base_url: https://micromap.acme.example.com
+      bolt_uri: bolt+s://acme-neo4j.acme.example.com:7687
+      bolt_auth_ref: env:ACME_BOLT_PASSWORD
+      auth_ref: env:ACME_FEDERATION_TOKEN
+      auth_type: bearer
+      capabilities: [diseases.taxa, taxa.diseases]
+      organization_id: acme

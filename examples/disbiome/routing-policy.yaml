@@ -1,0 +1,17 @@
+# Routing policy for the curated Disbiome example.
+#
+# The example contributor is `partner` tier (see contributor.yaml). The first
+# matching rule wins; the default fires for any contributor whose
+# (tier, sensitivity) doesn't match a rule above.
+rules:
+  - match: { tier: internal }
+    destination: micromap-core
+  - match: { tier: partner, sensitivity: public }
+    destination: micromap-core         # public-tier partner data is additive to core
+  - match: { tier: partner, sensitivity: internal }
+    destination: new-federated-instance
+  - match: { tier: external }
+    destination: registry-only          # external data needs review before any write
+
+default:
+  destination: registry-only

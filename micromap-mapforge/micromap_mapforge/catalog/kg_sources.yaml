@@ -1,0 +1,269 @@
+# Curated catalog of open-source biomedical knowledge graphs (C6, #76).
+#
+# The MapForge-unique value over the BioCypher adapter ecosystem: pick a KG to
+# bootstrap from with its license posture, adapter availability, and schema
+# preview visible up front.
+#
+# commercial_use: allowed | restricted | prohibited | unknown
+# adapter_status: upstream (a BioCypher adapter exists) | contributed (we
+#                 contributed it) | needs_contribution (no adapter yet, #76 C9)
+#                 | unknown
+version: "0.1.0"
+
+# License + commercial_use below are BEST-EFFORT as of each entry's
+# last_validated date. They are NOT legal advice and several sources aggregate
+# resources with mixed terms. Re-verify against the source's current license
+# before any commercial use; this is the data C6.1 (license-aware import
+# enforcement) will gate on.
+_caveat: >-
+  License and commercial-use fields are best-effort as of last_validated and are
+  not legal advice; verify each source's current terms before commercial use.
+
+sources:
+  - id: reactome
+    name: Reactome
+    homepage: https://reactome.org
+    description: Manually curated, peer-reviewed human pathway database.
+    license: CC-BY-4.0
+    commercial_use: allowed
+    license_notes: Attribution required.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    notes: No standalone biocypher/reactome adapter; currently reachable via pypath/OmniPath aggregation (#76 C9 candidate).
+    biolink_categories: [Pathway, Gene, Protein, SmallMolecule, BiologicalProcess]
+    recommended_for: [pathway-enrichment, mechanism-of-action]
+    est_size: "~2.6k pathways, ~11k reactions (human)"
+    last_validated: "2026-06-12"
+
+  - id: open-targets
+    name: Open Targets Platform
+    homepage: https://platform.opentargets.org
+    description: Target-disease associations integrating genetics, omics, and literature evidence.
+    license: CC0-1.0
+    commercial_use: allowed
+    license_notes: Public-domain dedication; no attribution required (courtesy attribution appreciated).
+    adapter_status: native
+    adapter_location: "micromap_mapforge/integration/biocypher/adapters/open_targets.py:OpenTargetsAdapter"
+    notes: >
+      The upstream biocypher/open-targets package (github.com/biocypher/open-targets)
+      pins requires-python>=3.10,<3.11, which cannot coexist with this project's
+      >=3.11 — so this is a native adapter reading Open Targets parquet directly
+      via pyarrow, not a wrapper around that package. Scope is intentionally
+      narrow (#375): Target/Disease/Molecule nodes (-> Gene/Disease/Drug) + a
+      target-disease association edge from the small, pre-aggregated
+      association_overall_direct dataset — not the upstream package's full
+      40+ node / 50+ edge reference graph, and not the much larger raw
+      evidence/ dataset. Run via `mapforge import-kg
+      micromap_mapforge.integration.biocypher.adapters.open_targets:OpenTargetsAdapter
+      --source <dir with target/disease/drug_molecule/association_overall_direct
+      subdirs, matching Open Targets release 25.03+'s real FTP layout> --organization-id
+      <id> --out <dir>`; lands in its own Fabric constituent (like primekg), not
+      merged into micromap. Field names verified against real downloaded files
+      (#388, release 25.03) — the directory names themselves had drifted (Open
+      Targets renamed every dataset to snake_case/singular in 25.03: targets->target,
+      diseases->disease, molecule->drug_molecule, associationByOverallDirect->
+      association_overall_direct) but every column this adapter reads is unchanged.
+      A future column mismatch still fails loudly (MissingColumnsError) rather
+      than silently dropping data.
+    biolink_categories: [Gene, Disease, Drug, Pathway, Phenotype]
+    recommended_for: [target-identification, drug-repurposing]
+    est_size: "~60k targets, ~18k diseases, millions of associations"
+    last_validated: "2026-06-12"
+
+  - id: primekg
+    name: PrimeKG
+    homepage: https://github.com/mims-harvard/PrimeKG
+    description: Precision-medicine knowledge graph spanning diseases, drugs, genes, phenotypes.
+    license: MIT
+    commercial_use: allowed
+    license_notes: Code MIT; the released graph is on Harvard Dataverse — verify the dataset's own license terms.
+    adapter_status: native
+    adapter_location: "micromap_mapforge/integration/biocypher/adapters/primekg.py:PrimeKGAdapter"
+    notes: >
+      Verified live against real data (2026-09-11, DOI 10.7910/DVN/IXA7BM):
+      129,375 nodes / ~4,050,249 edges across nodes.tab + edges.csv. Note:
+      818 of the 129,375 nodes are `exposure`-typed and sourced from CTD
+      (Comparative Toxicogenomics Database), whose own terms prohibit
+      commercial use without permission — the same restricted source PrimeKG
+      shares with OptimusKG (see the OptimusKG evaluation, #374). Excluded by
+      default via `exclude_node_types`, configurable. PrimeKG's own README
+      says it's been superseded by OptimusKG ("a superset... recommended
+      instead in almost every case") — OptimusKG was evaluated and rejected
+      for now: it bundles multiple confirmed commercially-restricted sources
+      (DrugBank, CTD, OnSIDES, likely DisGeNET) with no pre-built safe
+      subset, and would need its own license-filtering project before any
+      commercial use.
+    biolink_categories: [Disease, Drug, Gene, Phenotype, Pathway, BiologicalProcess, AnatomicalEntity]
+    recommended_for: [bootstrap-from-scratch, drug-repurposing, rare-disease]
+    est_size: "~129k nodes, ~4M edges"
+    last_validated: "2026-09-11"
+
+  - id: hetionet
+    name: Hetionet
+    homepage: https://het.io
+    description: Heterogeneous network integrating ~29 public resources for drug repurposing.
+    license: CC0-1.0
+    commercial_use: allowed
+    license_notes: Network released CC0; underlying source licenses vary — verify if redistributing components.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Gene, Disease, Drug, Pathway, AnatomicalEntity, Phenotype, BiologicalProcess]
+    recommended_for: [drug-repurposing, bootstrap-from-scratch]
+    est_size: "~47k nodes, ~2.25M edges"
+    last_validated: "2026-06-12"
+
+  - id: omnipath
+    name: OmniPath
+    homepage: https://omnipathdb.org
+    description: Aggregated signaling pathways, interactions, enzyme-substrate and complex data.
+    license: "Mixed (per-resource)"
+    commercial_use: restricted
+    license_notes: Aggregates many resources with differing licenses; some are non-commercial. Commercial use requires per-resource clearance.
+    adapter_status: upstream
+    adapter_location: "pypath / OmniPath BioCypher adapter"
+    biolink_categories: [Gene, Protein, Pathway, SmallMolecule, MolecularActivity]
+    recommended_for: [signaling, mechanism-of-action]
+    est_size: "millions of interactions across resources"
+    last_validated: "2026-06-12"
+
+  - id: hmdb
+    name: HMDB (Human Metabolome Database)
+    homepage: https://hmdb.ca
+    description: Detailed human metabolite, concentration, and disease-association data.
+    license: "HMDB terms"
+    commercial_use: restricted
+    license_notes: Free for academic/non-commercial use; commercial use requires a license from the HMDB team.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [SmallMolecule, Disease, Protein, Pathway]
+    recommended_for: [metabolomics, biomarker-discovery]
+    est_size: "~220k metabolite entries"
+    last_validated: "2026-06-12"
+
+  - id: monarch
+    name: Monarch Initiative
+    homepage: https://monarchinitiative.org
+    description: Integrated genotype-phenotype-disease KG across species.
+    license: CC-BY-4.0
+    commercial_use: allowed
+    license_notes: Attribution required; component ontologies/sources may carry their own terms.
+    adapter_status: unknown
+    adapter_location: ""
+    notes: Confirm current BioCypher adapter availability before relying on it.
+    biolink_categories: [Disease, Phenotype, Gene, AnatomicalEntity, BiologicalProcess]
+    recommended_for: [rare-disease, phenotype-matching, cross-species]
+    est_size: "millions of associations"
+    last_validated: "2026-06-12"
+
+  - id: kg-covid-19
+    name: KG-COVID-19
+    homepage: https://github.com/Knowledge-Graph-Hub/kg-covid-19
+    description: COVID-19 knowledge graph from the KG-Hub project.
+    license: BSD-3-Clause
+    commercial_use: allowed
+    license_notes: Build code BSD-3; ingested source data carries each source's own license.
+    adapter_status: upstream
+    adapter_location: "KG-Hub / verify BioCypher adapter"
+    notes: Adapter reportedly exists — verify against the current KG-Hub build.
+    biolink_categories: [Gene, Protein, Disease, Drug, ChemicalEntity, Publication]
+    recommended_for: [infectious-disease, literature-grounded]
+    est_size: "~ hundreds of thousands of edges"
+    last_validated: "2026-06-12"
+
+  - id: igvf
+    name: IGVF
+    homepage: https://igvf.org
+    description: Impact of Genomic Variation on Function consortium data.
+    license: "Consortium terms"
+    commercial_use: unknown
+    license_notes: Data-sharing under consortium policy; confirm reuse/commercial terms with IGVF before import.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Gene, SequenceVariant, RegulatoryRegion, BiologicalProcess]
+    recommended_for: [functional-genomics, variant-interpretation]
+    est_size: "growing; release-dependent"
+    last_validated: "2026-06-12"
+
+  - id: bgee
+    name: Bgee
+    homepage: https://bgee.org
+    description: Gene expression patterns across animal species and developmental stages.
+    license: CC0-1.0
+    commercial_use: allowed
+    license_notes: Data released CC0.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Gene, AnatomicalEntity, LifeStage]
+    recommended_for: [expression, comparative-biology]
+    est_size: "expression calls across ~50 species"
+    last_validated: "2026-06-12"
+
+  - id: chembl
+    name: ChEMBL
+    homepage: https://www.ebi.ac.uk/chembl
+    description: Bioactive drug-like molecules with bioactivity and target data.
+    license: CC-BY-SA-3.0
+    commercial_use: allowed
+    license_notes: Attribution + share-alike (derivatives under the same license).
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [SmallMolecule, Protein, Gene, Assay]
+    recommended_for: [drug-discovery, target-bioactivity]
+    est_size: "~2.4M compounds, ~20M activities"
+    last_validated: "2026-06-12"
+
+  - id: drugbank
+    name: DrugBank
+    homepage: https://go.drugbank.com
+    description: Detailed drug, target, mechanism, and interaction data.
+    license: "Proprietary (DrugBank license)"
+    commercial_use: prohibited
+    license_notes: Academic use free with registration; commercial use REQUIRES a paid DrugBank license. Do not redistribute without one.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Drug, Protein, Gene, Pathway]
+    recommended_for: [pharmacology, drug-target]
+    est_size: "~15k drug entries"
+    last_validated: "2026-06-12"
+
+  - id: clinvar
+    name: ClinVar
+    homepage: https://www.ncbi.nlm.nih.gov/clinvar
+    description: Relationships among human variants and phenotypes with clinical significance.
+    license: "US Public Domain (NCBI)"
+    commercial_use: allowed
+    license_notes: US government public-domain data; some submitted records may carry submitter terms.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [SequenceVariant, Disease, Gene, Phenotype]
+    recommended_for: [clinical-variant, diagnostics]
+    est_size: "millions of variant-condition records"
+    last_validated: "2026-06-12"
+
+  - id: depmap
+    name: DepMap
+    homepage: https://depmap.org
+    description: Cancer dependency map — gene essentiality and drug sensitivity across cell lines.
+    license: CC-BY-4.0
+    commercial_use: allowed
+    license_notes: Attribution required; confirm per-dataset terms on the DepMap portal.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Gene, CellLine, Drug, Phenotype]
+    recommended_for: [oncology, target-essentiality]
+    est_size: "~1k+ cell lines, genome-wide screens"
+    last_validated: "2026-06-12"
+
+  - id: mibig
+    name: MIBiG
+    homepage: https://mibig.secondarymetabolites.org
+    description: Minimum Information about a Biosynthetic Gene cluster — curated BGC repository.
+    license: CC-BY-4.0
+    commercial_use: allowed
+    license_notes: Attribution required.
+    adapter_status: needs_contribution
+    adapter_location: ""
+    biolink_categories: [Gene, SmallMolecule, BiologicalProcess]
+    recommended_for: [natural-products, microbiome, biosynthesis]
+    est_size: "~2.5k curated gene clusters"
+    last_validated: "2026-06-12"

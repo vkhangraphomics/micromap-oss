@@ -1,0 +1,51 @@
+microorganism,ncbi_taxid,taxonomic_rank,disease,doid,qualitative_outcome,sample,method,pmid,doi,host
+Faecalibacterium prausnitzii,853,species,Crohn's disease,8778,decreased,stool,16S rRNA sequencing,18936492,10.1073/pnas.0804812105,human
+Faecalibacterium prausnitzii,853,species,ulcerative colitis,8577,decreased,stool,16S rRNA sequencing,23042570,10.1136/gutjnl-2012-303184,human
+Faecalibacterium prausnitzii,853,species,colorectal cancer,1520,decreased,stool,16S rRNA sequencing,28006212,10.1136/gutjnl-2016-313189,human
+Akkermansia muciniphila,239935,species,type 2 diabetes mellitus,9352,decreased,stool,qPCR,23725003,10.1073/pnas.1219451110,human
+Akkermansia muciniphila,239935,species,obesity,9970,decreased,stool,qPCR,23023220,10.1080/19490976.2012.722889,human
+Akkermansia muciniphila,239935,species,Parkinson's disease,14330,increased,stool,16S rRNA sequencing,28571381,10.1002/mds.27105,human
+Bacteroides fragilis,817,species,Crohn's disease,8778,increased,colonic biopsy,16S rRNA sequencing,17050702,10.1136/gut.2006.099812,human
+Bacteroides fragilis,817,species,inflammatory bowel disease,824,decreased,stool,whole-genome sequencing,24587631,10.1186/gb-2014-15-7-r89,human
+Bifidobacterium longum,216816,species,ulcerative colitis,8577,decreased,stool,qPCR,15930511,10.1111/j.1572-0241.2005.41108.x,human
+Bifidobacterium longum,216816,species,allergic rhinitis,4481,decreased,stool,culture,18241389,10.1093/ajcn/87.3.778,human
+Bifidobacterium adolescentis,1680,species,Crohn's disease,8778,decreased,stool,FISH,17475023,10.1093/ibd/zlx013,human
+Roseburia intestinalis,166486,species,Crohn's disease,8778,decreased,stool,16S rRNA sequencing,24618988,10.1136/gutjnl-2013-306541,human
+Roseburia intestinalis,166486,species,type 2 diabetes mellitus,9352,decreased,stool,metagenomic shotgun,23023125,10.1038/nature11450,human
+Eubacterium rectale,39491,species,Crohn's disease,8778,decreased,stool,16S rRNA sequencing,24336217,10.1186/gb-2012-13-9-r79,human
+Eubacterium rectale,39491,species,obesity,9970,decreased,stool,16S rRNA sequencing,22158514,10.1126/science.1208344,human
+Prevotella copri,165179,species,rheumatoid arthritis,7148,increased,stool,16S rRNA sequencing,24192039,10.7554/eLife.01202,human
+Prevotella copri,165179,species,ankylosing spondylitis,7147,increased,stool,16S rRNA sequencing,28092664,10.1186/s13075-016-1235-3,human
+Lactobacillus rhamnosus,47715,species,atopic dermatitis,3310,decreased,stool,culture,12546634,10.1067/mai.2002.130405,human
+Lactobacillus reuteri,1598,species,Crohn's disease,8778,decreased,stool,qPCR,17681163,10.1097/MIB.0b013e3181468ada,human
+Ruminococcus gnavus,33038,species,Crohn's disease,8778,increased,stool,16S rRNA sequencing,28370128,10.1038/ng.3826,human
+Ruminococcus gnavus,33038,species,inflammatory bowel disease,824,increased,stool,metagenomic shotgun,30531976,10.1186/s13059-018-1487-0,human
+Clostridium difficile,1496,species,Clostridium difficile colitis,1456,increased,stool,toxin assay,16322603,10.1056/NEJMoa051639,human
+Helicobacter pylori,210,species,gastric cancer,10534,increased,gastric biopsy,culture,8359043,10.1056/NEJM199109053251007,human
+Helicobacter pylori,210,species,peptic ulcer disease,749,increased,gastric biopsy,culture,6105997,10.1016/S0140-6736(84)91816-6,human
+Fusobacterium nucleatum,851,species,colorectal cancer,1520,increased,colonic biopsy,16S rRNA sequencing,23010762,10.1101/gr.126573.111,human
+Fusobacterium nucleatum,851,species,inflammatory bowel disease,824,increased,colonic biopsy,16S rRNA sequencing,21209030,10.1136/gut.2010.232476,human
+Streptococcus mutans,1309,species,dental caries,11653,increased,oral swab,culture,17452561,10.1111/j.1601-0825.2007.01357.x,human
+Porphyromonas gingivalis,837,species,periodontitis,824,increased,oral swab,16S rRNA sequencing,22422965,10.1038/ismej.2011.191,human
+Klebsiella pneumoniae,573,species,inflammatory bowel disease,824,increased,stool,culture,28350380,10.1016/j.chom.2017.03.001,human
+Escherichia coli,562,species,Crohn's disease,8778,increased,colonic biopsy,culture,17499043,10.1136/gut.2007.122465,human
+Escherichia coli,562,species,inflammatory bowel disease,824,increased,colonic biopsy,FISH,15233951,10.1097/00054725-200408000-00003,human
+Bilophila wadsworthia,35833,species,Crohn's disease,8778,increased,stool,qPCR,22735850,10.1038/nature11225,human
+Desulfovibrio piger,901,species,ulcerative colitis,8577,increased,stool,qPCR,18305155,10.1111/j.1574-6941.2008.00450.x,human
+Methanobrevibacter smithii,2173,species,obesity,9970,increased,stool,qPCR,19174574,10.1073/pnas.0808567106,human
+Bacteroides uniformis,820,species,obesity,9970,decreased,stool,16S rRNA sequencing,21625467,10.1186/1471-2180-9-123,human
+Christensenella minuta,626937,species,obesity,9970,decreased,stool,16S rRNA sequencing,25417156,10.1016/j.cell.2014.09.053,human
+Alistipes putredinis,28117,species,depression,1596,decreased,stool,16S rRNA sequencing,25882912,10.1038/mp.2015.34,human
+Dialister invisus,218538,species,Parkinson's disease,14330,decreased,stool,16S rRNA sequencing,27709991,10.1002/mds.26779,human
+Lactobacillus plantarum,1590,species,irritable bowel syndrome,9778,decreased,stool,16S rRNA sequencing,15068579,10.1111/j.1365-2036.2004.01951.x,human
+Lactobacillus,1578,genus,necrotizing enterocolitis,11963,decreased,stool,16S rRNA sequencing,26063614,10.1186/s40168-015-0078-5,human
+Bifidobacterium,1678,genus,necrotizing enterocolitis,11963,decreased,stool,16S rRNA sequencing,26063614,10.1186/s40168-015-0078-5,human
+Enterococcus faecium,1352,species,nosocomial infection,0050779,increased,stool,whole-genome sequencing,24202819,10.1128/AAC.01160-13,human
+Staphylococcus aureus,1280,species,atopic dermatitis,3310,increased,skin swab,culture,24226449,10.1016/j.jaci.2013.10.017,human
+Cutibacterium acnes,1747,species,acne,6543,increased,skin swab,16S rRNA sequencing,23337834,10.1038/jid.2013.21,human
+Mycobacterium avium subsp. paratuberculosis,1770,species,Crohn's disease,8778,increased,colonic biopsy,PCR,18045528,10.1186/1471-230X-7-39,human
+Lactobacillus crispatus,47770,species,bacterial vaginosis,1635,decreased,vaginal swab,16S rRNA sequencing,24501390,10.1186/2049-2618-2-23,human
+Gardnerella vaginalis,2702,species,bacterial vaginosis,1635,increased,vaginal swab,16S rRNA sequencing,22737141,10.1371/journal.pone.0036466,human
+Veillonella parvula,29466,species,inflammatory bowel disease,824,increased,stool,16S rRNA sequencing,23010762,10.1101/gr.126573.111,human
+Bacteroides vulgatus,821,species,inflammatory bowel disease,824,decreased,stool,16S rRNA sequencing,18936492,10.1073/pnas.0804812105,human
+Coprococcus catus,116085,species,depression,1596,decreased,stool,16S rRNA sequencing,30808820,10.1038/s41564-018-0337-x,human

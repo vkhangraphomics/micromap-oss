@@ -1,0 +1,9 @@
+rules:
+  - match: { tier: partner, min_rows: 100000 }
+    destination: new-federated-instance
+default:
+  destination: registry-only
+destinations:
+  new-federated-instance:
+    federation:
+      source_id: acme-pharma

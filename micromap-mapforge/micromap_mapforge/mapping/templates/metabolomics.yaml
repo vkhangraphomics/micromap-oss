@@ -1,0 +1,281 @@
+name: micromap-metabolomics
+description: >
+  MicroMap metabolomics KG ontology (Compound/Measurement/Study/Sample/etc.)
+version: "1.1.0"
+last_updated: "2026-06-08"
+
+prefixes:
+  HMDB: https://hmdb.ca/metabolites/
+  CHEBI: "https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:"
+  PUBCHEM: https://pubchem.ncbi.nlm.nih.gov/compound/
+  KEGG: https://www.kegg.jp/entry/
+  KEGG.PATHWAY: https://www.kegg.jp/pathway/
+  METACYC: https://metacyc.org/compound?orgid=META&id=
+  METACYC.PATHWAY: https://metacyc.org/pathway?orgid=META&id=
+  MONDO: http://purl.obolibrary.org/obo/MONDO_
+  DOID: http://purl.obolibrary.org/obo/DOID_
+  MESH: https://meshb.nlm.nih.gov/record/ui?ui=
+  UBERON: http://purl.obolibrary.org/obo/UBERON_
+  METABOLIGHTS: https://www.ebi.ac.uk/metabolights/
+  CAS: https://commonchemistry.cas.org/detail?cas_rn=
+  PMID: https://pubmed.ncbi.nlm.nih.gov/
+  local: ""
+
+classes:
+  Compound:
+    is_a: named thing
+    id_prefixes: [HMDB, CHEBI, PUBCHEM, KEGG, METACYC]
+    slots:
+      - id
+      - name
+      - compound_id
+      - inchi_key
+      - pubchem_cid
+      - hmdb_id
+      - chebi_id
+      - kegg_id
+      - cas_number
+      - chemical_formula
+      - molecular_weight
+      - smiles
+      - inchi
+    x_mapforge:
+      primary_id: compound_id
+      identifiers:
+        - compound_id
+        - inchi_key
+        - pubchem_cid
+        - hmdb_id
+        - chebi_id
+        - kegg_id
+        - cas_number
+      name_field: name
+      common_columns_hint:
+        - compound
+        - compound_id
+        - metabolite
+        - metabolite_id
+        - chemical
+        - inchi_key
+        - inchikey
+        - pubchem_cid
+        - hmdb_id
+        - chebi_id
+        - kegg_id
+        - cas
+        - cas_number
+        # mzTab-M small-molecule columns (#286 G4): SML rows carry these.
+        - chemical_name
+        - chemical_formula
+        - smiles
+        - inchi
+        - database_identifier
+      normalizer: null
+      status: populated
+      notes: |
+        Canonical cross-discipline chemical entity class. compound_id is a
+        prefixed CURIE: INCHIKEY:<inchi_key> if present, else PUBCHEM:<pubchem_cid>.
+        Loaders call resolve_compound_id() from database.ingestion.utils.
+        MERGE on compound_id deduplicates naturally across microbiome and
+        metabolomics constituents in a Fabric composite.
+
+  Pathway:
+    is_a: biological process
+    id_prefixes: [KEGG.PATHWAY, METACYC.PATHWAY]
+    slots:
+      - id
+      - name
+      - pathway_id
+    x_mapforge:
+      primary_id: pathway_id
+      identifiers: [pathway_id]
+      name_field: name
+      common_columns_hint:
+        - pathway
+        - pathway_id
+        - kegg_pathway
+        - kegg_pathway_id
+        - metacyc_pathway
+      status: populated
+      notes: Shared pattern with microbiome template (KEGG/MetaCyc/Reactome).
+
+  Disease:
+    is_a: disease or phenotypic feature
+    id_prefixes: [MONDO, DOID, MESH]
+    slots:
+      - id
+      - name
+      - disease_id
+      - name_normalized
+    x_mapforge:
+      primary_id: name_normalized
+      identifiers: [name_normalized, disease_id]
+      name_field: name
+      common_columns_hint:
+        - disease
+        - disease_id
+        - mondo_id
+        - doid
+        - mesh_id
+        - condition
+        - disorder
+      normalizer: normalize_disease_name
+      status: populated
+      notes: >
+        Shared with microbiome template. MERGE on name_normalized for
+        cross-source deduplication.
+
+  BodySite:
+    is_a: anatomical entity
+    id_prefixes: [UBERON]
+    slots:
+      - id
+      - name
+      - bodysite_id
+    x_mapforge:
+      primary_id: bodysite_id
+      identifiers: [bodysite_id, name]
+      name_field: name
+      common_columns_hint:
+        - body_site
+        - bodysite
+        - tissue
+        - biofluid
+        - uberon_id
+        - anatomical_location
+      status: populated
+      notes: Shared with microbiome template (UBERON-anchored).
+
+  Study:
+    is_a: investigation
+    id_prefixes: [METABOLIGHTS, PMID]
+    slots:
+      - id
+      - title
+      - study_id
+      - study_type
+      - description
+      - publication_date
+    x_mapforge:
+      primary_id: study_id
+      identifiers: [study_id]
+      name_field: title
+      common_columns_hint:
+        - study
+        - study_id
+        - metabolights_id
+        - investigation
+      status: populated
+      notes: >
+        Generalized from microbiome template. study_type = "metabolomics"
+        for MetaboLights studies; "microbiome" for 16S/WGS studies.
+
+  Sample:
+    is_a: material sample
+    id_prefixes: [METABOLIGHTS, local]
+    slots:
+      - id
+      - name
+      - sample_id
+      - sample_type
+      - organism
+      - tissue
+      - disease_state
+    x_mapforge:
+      primary_id: sample_id
+      identifiers: [sample_id]
+      name_field: name
+      common_columns_hint:
+        - sample
+        - sample_id
+        - subject
+        - specimen
+      status: populated
+      notes: >
+        Generalized from microbiome template. sample_type = "metabolomics"
+        for MetaboLights samples. local: prefix is the escape hatch for
+        project-internal sample IDs that don't resolve to MetaboLights.
+
+  Measurement:
+    is_a: quantity value
+    id_prefixes: [local]
+    slots:
+      - id
+      - measurement_id
+      - value
+      - unit
+      - assay_type
+      - detection_limit
+    x_mapforge:
+      primary_id: measurement_id
+      identifiers: [measurement_id]
+      common_columns_hint:
+        - measurement
+        - measurement_id
+        - intensity
+        - abundance
+        - concentration
+      status: populated
+      notes: |
+        measurement_id = "<study_id>:<sample_id>:<compound_id>".
+        Modeled as a node (not an edge property) to support value-range
+        queries and multi-analyte assay patterns. local: prefix is the
+        standard escape hatch for project-internal synthetic IDs.
+
+  PARTICIPATES_IN:
+    is_a: association
+    subject: Compound
+    object: Pathway
+    x_mapforge:
+      status: populated
+      notes: MetaCyc and KEGG compound-pathway membership.
+
+  FOUND_IN:
+    is_a: association
+    subject: Compound
+    object: BodySite
+    x_mapforge:
+      properties: [concentration_normal, concentration_range, age_range]
+      status: populated
+      notes: HMDB biofluid and tissue localization data.
+
+  BIOMARKER_FOR:
+    is_a: association
+    subject: Compound
+    object: Disease
+    x_mapforge:
+      properties: [evidence_level, biomarker_type, pmid]
+      status: populated
+      notes: HMDB disease-biomarker associations.
+
+  HAS_SAMPLE:
+    is_a: association
+    subject: Study
+    object: Sample
+    x_mapforge:
+      status: populated
+      notes: MetaboLights study-to-sample membership.
+
+  HAS_MEASUREMENT:
+    is_a: association
+    subject: Sample
+    object: Measurement
+    x_mapforge:
+      status: populated
+      notes: MetaboLights per-sample assay measurements.
+
+  QUANTIFIES:
+    is_a: association
+    subject: Measurement
+    object: Compound
+    x_mapforge:
+      status: populated
+      notes: Links a quantitative measurement to its target compound.
+
+  COLLECTED_FROM:
+    is_a: association
+    subject: Sample
+    object: BodySite
+    x_mapforge:
+      status: populated
+      notes: Tissue or biofluid source for a MetaboLights sample.

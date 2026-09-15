@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://graphomics.com/schemas/micromap-mapforge/routing-policy.schema.json",
+  "title": "MapForge Routing Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rules", "default"],
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["match", "destination"],
+        "properties": {
+          "match": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "tier":        { "enum": ["internal", "partner", "external"] },
+              "sensitivity": { "enum": ["public", "internal", "pii"] },
+              "min_rows":    { "type": "integer", "minimum": 0 },
+              "max_rows":    { "type": "integer", "minimum": 0 }
+            }
+          },
+          "destination": { "enum": ["micromap-core", "registry-only", "new-federated-instance"] }
+        }
+      }
+    },
+    "default": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["destination"],
+      "properties": {
+        "destination": { "enum": ["micromap-core", "registry-only", "new-federated-instance"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "destinations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "new-federated-instance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["federation"],
+          "properties": {
+            "federation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_id", "display_name", "base_url",
+                "bolt_uri", "bolt_auth_ref", "auth_ref",
+                "capabilities", "organization_id"
+              ],
+              "properties": {
+                "source_id":        { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$" },
+                "display_name":     { "type": "string" },
+                "base_url":         { "type": "string", "format": "uri" },
+                "bolt_uri":         { "type": "string" },
+                "bolt_user":        { "type": "string", "minLength": 1 },
+                "bolt_auth_ref":    { "type": "string", "pattern": "^env:[A-Z][A-Z0-9_]*$" },
+                "auth_ref":         { "type": "string", "pattern": "^env:[A-Z][A-Z0-9_]*$" },
+                "auth_type":        { "enum": ["bearer", "api_key_header"] },
+                "auth_header_name": { "type": "string" },
+                "capabilities": {
+                  "type": "array",
+                  "items": { "type": "string", "pattern": "^(search|[a-z][a-z_]*\\.[a-z][a-z_]*)$" },
+                  "minItems": 1
+                },
+                "organization_id":  { "type": "string" },
+                "tier":             { "enum": ["micromap", "adapter"] },
+                "timeout_ms":       { "type": "integer", "minimum": 100 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+source:
+  name: "hmdb_serum_metabolites_mini"
+  format: csv
+  path: "serum_metabolites.csv"
+  description: >
+    30 curated HMDB serum metabolites with disease associations and KEGG pathway
+    annotations. One BodySite node (UBERON:0001977 - serum) shared across all rows.
+
+entities:
+  - label: Compound
+    match_on: compound_id
+    columns:
+      compound_id: hmdb_id
+      hmdb_id: hmdb_id
+      inchi_key: inchi_key
+      name: compound_name
+    confidence: EXTRACTED
+
+  - label: Disease
+    match_on: name_normalized
+    normalizer: normalize_disease_name
+    columns:
+      name: disease_name
+    confidence: EXTRACTED
+
+  - label: Pathway
+    match_on: pathway_id
+    columns:
+      pathway_id: kegg_pathway_id
+      kegg_id: kegg_pathway_id
+    confidence: EXTRACTED
+
+  - label: BodySite
+    match_on: bodysite_id
+    columns:
+      bodysite_id: uberon_id
+      uberon_id: uberon_id
+    confidence: EXTRACTED
+
+relationships:
+  - type: BIOMARKER_FOR
+    from: "Compound(compound_id=row.hmdb_id)"
+    to:   "Disease(name_normalized=normalize(row.disease_name))"
+    properties:
+      evidence_level: { constant: literature_curated }
+    confidence: EXTRACTED
+
+  - type: PARTICIPATES_IN
+    from: "Compound(compound_id=row.hmdb_id)"
+    to:   "Pathway(pathway_id=row.kegg_pathway_id)"
+    confidence: EXTRACTED
+
+  - type: FOUND_IN
+    from: "Compound(compound_id=row.hmdb_id)"
+    to:   "BodySite(bodysite_id=row.uberon_id)"
+    confidence: EXTRACTED

@@ -1,0 +1,8 @@
+rules:
+  - match:
+      tier: partner
+      sensitivity: public
+    destination: micromap-core
+
+default:
+  destination: micromap-core

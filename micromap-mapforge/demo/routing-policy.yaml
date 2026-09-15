@@ -1,0 +1,5 @@
+rules: []
+default:
+  destination: micromap-core
+provenance:
+  enabled: true

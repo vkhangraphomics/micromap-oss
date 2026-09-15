@@ -1,0 +1,57 @@
+source:
+  name: "geo_gse5281_alzheimer_mini"
+  format: csv
+  path: "alzheimer_degs.csv"
+  description: >
+    Top differentially expressed genes from GEO GSE5281 (Liang et al. 2008,
+    PMID 18632887) across 6 Alzheimer's disease brain regions vs. controls.
+    30 gene x brain-region rows. Template: transcriptomics.
+
+entities:
+  - label: Gene
+    match_on: gene_id
+    columns:
+      gene_id: ensembl_gene_id
+      ensembl_gene_id: ensembl_gene_id
+      symbol: gene_symbol
+    confidence: EXTRACTED
+
+  - label: Sample
+    match_on: sample_id
+    columns:
+      sample_id: gsm
+      gsm: gsm
+    confidence: EXTRACTED
+
+  - label: Tissue
+    match_on: tissue_id
+    columns:
+      tissue_id: uberon_id
+      uberon_id: uberon_id
+    confidence: EXTRACTED
+
+  - label: Condition
+    match_on: condition_id
+    columns:
+      condition_id: efo_id
+      efo_id: efo_id
+    confidence: EXTRACTED
+
+relationships:
+  - type: DIFFERENTIALLY_EXPRESSED_IN
+    from: "Gene(gene_id=row.ensembl_gene_id)"
+    to:   "Condition(condition_id=row.efo_id)"
+    properties:
+      log2_fc: log2_fold_change
+      q_value: adj_p_value
+    confidence: EXTRACTED
+
+  - type: SAMPLE_FROM_TISSUE
+    from: "Sample(sample_id=row.gsm)"
+    to:   "Tissue(tissue_id=row.uberon_id)"
+    confidence: EXTRACTED
+
+  - type: SAMPLE_HAS_CONDITION
+    from: "Sample(sample_id=row.gsm)"
+    to:   "Condition(condition_id=row.efo_id)"
+    confidence: EXTRACTED

@@ -1,0 +1,21 @@
+{
+  "organization_id": "test-org",
+  "batch_ncbi_tax_id": [
+    {
+      "merge_value": "562",
+      "props": {
+        "provenance_source": "study",
+        "provenance_method": "mined",
+        "confidence": "INFERRED"
+      }
+    },
+    {
+      "merge_value": "1496",
+      "props": {
+        "provenance_source": "study",
+        "provenance_method": "mined",
+        "confidence": "INFERRED"
+      }
+    }
+  ]
+}
