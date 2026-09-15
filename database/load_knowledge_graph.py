@@ -10,12 +10,10 @@ Data sources:
 2. Disbiome - Disease-microbiome associations
 3. HMDB - Human Metabolome Database (requires XML download)
 4. KEGG - Metabolic pathways (API-based)
-5. DrugBank - Drug-target interactions (requires academic license)
-6. ChEMBL - Bioactivity data (API-based, open-access)
-7. PubChem - Compound data (API-based, public domain)
-8. CARD - Antibiotic resistance database (requires data files)
-9. Curated PRODUCES - Taxon-metabolite production relationships
-10. Curated Neurological - Neurological disease-microbiome associations
+5. ChEMBL - Bioactivity data (API-based, open-access)
+6. PubChem - Compound data (API-based, public domain)
+7. Curated PRODUCES - Taxon-metabolite production relationships
+8. Curated Neurological - Neurological disease-microbiome associations
 
 Usage:
     python load_knowledge_graph.py --all              # Load all data
@@ -24,11 +22,8 @@ Usage:
     python load_knowledge_graph.py --produces         # Load PRODUCES only
     python load_knowledge_graph.py --hmdb             # Load HMDB metabolites
     python load_knowledge_graph.py --kegg             # Load KEGG pathways
-    python load_knowledge_graph.py --drugbank         # Load DrugBank drugs
     python load_knowledge_graph.py --chembl           # Load ChEMBL bioactivity
     python load_knowledge_graph.py --pubchem          # Load PubChem compounds
-    python load_knowledge_graph.py --card             # Load CARD resistance data
-    python load_knowledge_graph.py --dgidb            # Load DGIdb drug-gene interactions
     python load_knowledge_graph.py --gutmdisorder     # Load gutMDisorder data
     python load_knowledge_graph.py --gmrepo           # Load GMrepo data
     python load_knowledge_graph.py --bugsigdb         # Load BugSigDB signatures
@@ -129,10 +124,6 @@ def upload_data_to_s3(data_dir: str, s3_manager) -> None:
     known_files = {
         "hmdb_metabolites.xml": "hmdb/hmdb_metabolites.xml",
         "hmdb_metabolites.xml.gz": "hmdb/hmdb_metabolites.xml.gz",
-        "drugbank_all_full_database.xml": "drugbank/drugbank.xml",
-        "drugbank_all_full_database.xml.gz": "drugbank/drugbank.xml.gz",
-        "drugbank.xml": "drugbank/drugbank.xml",
-        "card.json": "card/card.json",
         "gutMDisorder.tsv": "gutmdisorder/gutmdisorder.tsv",
         "gutMDisorder.csv": "gutmdisorder/gutmdisorder.tsv",
         "bugsigdb.tsv": "bugsigdb/bugsigdb.csv",
@@ -707,58 +698,6 @@ def load_kegg_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str 
     return stats
 
 
-def load_drugbank_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str = DEFAULT_NEO4J_DATABASE, s3_manager=None):
-    """Load DrugBank drug-target data into Neo4j."""
-    s3_local_path = None
-    try:
-        xml_file = None
-
-        if s3_manager:
-            try:
-                s3_local_path = s3_manager.download("drugbank/drugbank.xml")
-                xml_file = s3_local_path
-            except Exception as e:
-                logger.warning(f"S3 download failed for DrugBank, falling back to local: {e}")
-
-        if not xml_file:
-            drugbank_path = os.environ.get("DRUGBANK_DATA_PATH", str(DATA_DIR / "drugbank"))
-            for candidate in [
-                Path(drugbank_path) / "drugbank_all_full_database.xml.gz",
-                Path(drugbank_path) / "drugbank_all_full_database.xml",
-                Path(drugbank_path),
-            ]:
-                if candidate.is_file():
-                    xml_file = str(candidate)
-                    break
-
-        if not xml_file:
-            logger.warning(
-                "DrugBank data not found. "
-                "Download from https://go.drugbank.com/releases (requires academic license) "
-                "and place in data/knowledge_graph/drugbank/"
-            )
-            return None
-
-        logger.info(f"Loading DrugBank data from {xml_file}...")
-        sys.path.insert(0, str(Path(__file__).parent))
-        from ingestion.drugbank_loader import DrugBankLoader
-
-        loader = DrugBankLoader(
-            driver=driver,
-            organization_id=organization_id,
-            file_path=xml_file,
-            batch_size=100,
-            database=database
-        )
-
-        stats = loader.run()
-        logger.info(f"DrugBank data loaded: {stats.to_dict()}")
-        return stats
-    finally:
-        if s3_manager and s3_local_path:
-            s3_manager.cleanup(s3_local_path)
-
-
 def load_chembl_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str = DEFAULT_NEO4J_DATABASE):
     """Load ChEMBL drug-target data into Neo4j (API-based)."""
     logger.info("Loading ChEMBL data (API-based, this may take a while)...")
@@ -789,69 +728,6 @@ def load_pubchem_data(driver, organization_id: str = DEFAULT_ORG_ID, database: s
     stats = load_microbiome_related_compounds(driver, organization_id=organization_id)
     logger.info(f"PubChem data loaded: {stats}")
     return stats
-
-
-def load_dgidb_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str = DEFAULT_NEO4J_DATABASE):
-    """Load DGIdb drug-gene interaction data into Neo4j (API-based, CC BY 4.0)."""
-    logger.info("Loading DGIdb data (API-based, this may take a while)...")
-
-    sys.path.insert(0, str(Path(__file__).parent))
-    from ingestion.dgidb_loader import DGIdbLoader
-
-    loader = DGIdbLoader(
-        driver=driver,
-        organization_id=organization_id,
-        database=database,
-    )
-
-    stats = loader.run()
-    logger.info(f"DGIdb data loaded: {stats.to_dict()}")
-    return stats
-
-
-def load_card_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str = DEFAULT_NEO4J_DATABASE, s3_manager=None):
-    """Load CARD antibiotic resistance data into Neo4j."""
-    s3_local_path = None
-    try:
-        card_path = None
-
-        if s3_manager:
-            try:
-                s3_local_path = s3_manager.download("card/card.json")
-                # CARDLoader expects a directory; derive it from the downloaded file
-                card_path = str(Path(s3_local_path).parent)
-            except Exception as e:
-                logger.warning(f"S3 download failed for CARD, falling back to local: {e}")
-
-        if not card_path:
-            card_path = os.environ.get("CARD_DATA_PATH", str(DATA_DIR / "card"))
-            card_dir = Path(card_path)
-            if not card_dir.is_dir() or not (card_dir / "card.json").exists():
-                logger.warning(
-                    "CARD data not found. "
-                    "Download from https://card.mcmaster.ca/download "
-                    "and extract to data/knowledge_graph/card/"
-                )
-                return None
-
-        logger.info(f"Loading CARD data from {card_path}...")
-        sys.path.insert(0, str(Path(__file__).parent))
-        from ingestion.card_loader import CARDLoader
-
-        loader = CARDLoader(
-            driver=driver,
-            organization_id=organization_id,
-            card_data_dir=card_path,
-            batch_size=500,
-            database=database
-        )
-
-        stats = loader.run()
-        logger.info(f"CARD data loaded: {stats.to_dict()}")
-        return stats
-    finally:
-        if s3_manager and s3_local_path:
-            s3_manager.cleanup(s3_local_path)
 
 
 def load_gutmdisorder_data(driver, organization_id: str = DEFAULT_ORG_ID, database: str = DEFAULT_NEO4J_DATABASE, s3_manager=None):
@@ -1423,11 +1299,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--neurological", action="store_true", help="Load neurological disease data")
     parser.add_argument("--hmdb", action="store_true", help="Load HMDB metabolite data")
     parser.add_argument("--kegg", action="store_true", help="Load KEGG pathway data")
-    parser.add_argument("--drugbank", action="store_true", help="Load DrugBank drug-target data")
     parser.add_argument("--chembl", action="store_true", help="Load ChEMBL bioactivity data")
     parser.add_argument("--pubchem", action="store_true", help="Load PubChem compound data")
-    parser.add_argument("--card", action="store_true", help="Load CARD antibiotic resistance data")
-    parser.add_argument("--dgidb", action="store_true", help="Load DGIdb drug-gene interaction data")
     parser.add_argument("--gutmdisorder", action="store_true", help="Load gutMDisorder data")
     parser.add_argument("--gmrepo", action="store_true", help="Load GMrepo gut metagenome data")
     parser.add_argument("--bugsigdb", action="store_true", help="Load BugSigDB signatures")
@@ -1510,7 +1383,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 #: hung a t3.medium and re-created data the migration had just cleaned up.
 EXPLICIT_ACTION_FLAGS = (
     "all", "indexes", "taxonomy", "disbiome", "produces", "neurological", "hmdb",
-    "kegg", "drugbank", "chembl", "pubchem", "card", "dgidb", "gutmdisorder", "gmrepo",
+    "kegg", "chembl", "pubchem", "gutmdisorder", "gmrepo",
     "bugsigdb", "pubmed", "semmeddb", "mbodymap", "reactome", "metabolomics_hmdb",
     "metacyc", "metabo_lights", "metabolomics", "uniprot_proteomics", "phosphosite",
     "pride", "proteomics", "validate", "validate_xrefs", "deduplicate", "derive",
@@ -1564,10 +1437,6 @@ def _dispatch(args: argparse.Namespace, driver, *, s3_manager=None) -> None:
     if args.all or args.kegg:
         load_kegg_data(driver, args.org_id, args.neo4j_database)
 
-    # Load DrugBank data
-    if args.all or args.drugbank:
-        load_drugbank_data(driver, args.org_id, args.neo4j_database, s3_manager=s3_manager)
-
     # Load ChEMBL data
     if args.all or args.chembl:
         load_chembl_data(driver, args.org_id, args.neo4j_database)
@@ -1575,14 +1444,6 @@ def _dispatch(args: argparse.Namespace, driver, *, s3_manager=None) -> None:
     # Load PubChem data
     if args.all or args.pubchem:
         load_pubchem_data(driver, args.org_id, args.neo4j_database)
-
-    # Load CARD data
-    if args.all or args.card:
-        load_card_data(driver, args.org_id, args.neo4j_database, s3_manager=s3_manager)
-
-    # Load DGIdb data
-    if args.all or args.dgidb:
-        load_dgidb_data(driver, args.org_id, args.neo4j_database)
 
     # Load gutMDisorder data
     if args.all or args.gutmdisorder:

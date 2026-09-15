@@ -266,7 +266,7 @@ class RelationshipCounts(BaseModel):
     targets: int = Field(0, description="Drug-target relationships")
     mentioned_in: int = Field(0, description="Entity-paper relationships")
     linked_to_disease: int = Field(0, description="Metabolite-disease associations")
-    effective_against: int = Field(0, description="Antimicrobial resistance relationships (CARD)")
+    effective_against: int = Field(0, description="Antimicrobial resistance relationships")
     belongs_to_class: int = Field(0, description="Drug classification relationships")
     processes: int = Field(0, description="Metabolic processing relationships")
     same_as: int = Field(0, description="Entity equivalence relationships")

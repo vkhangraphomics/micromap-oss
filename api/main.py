@@ -122,7 +122,7 @@ API requests are rate-limited to **100 requests per minute** per API key.
 | Relationship | Count | Description |
 |--------------|-------|-------------|
 | `HAS_PARENT` | 774,502 | Taxonomic hierarchy |
-| `EFFECTIVE_AGAINST` | 276,169 | Antimicrobial resistance (CARD) |
+| `EFFECTIVE_AGAINST` | 276,169 | Antimicrobial resistance |
 | `PRODUCES` | 231,556 | Taxon-metabolite production |
 | `MENTIONED_IN` | 106,909 | Literature references |
 | `ASSOCIATED_WITH_DISEASE` | 11,612 | Taxon-disease links with direction |

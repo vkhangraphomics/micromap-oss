@@ -214,8 +214,6 @@ taxa = response.json()["taxa"]
 | Reactome | Pathway and protein data | Pathway integration |
 | PubMed | Scientific literature | 10,000 papers |
 | PubChem | Chemical compounds | 32 compounds |
-| CARD | Antimicrobial resistance | 276,169 resistance links |
-| DGIdb | Drug-gene interactions | See `/api/v1/stats` |
 | Curated PRODUCES | Taxon-metabolite production | 231,556 relationships |
 | Neurological diseases | Gut-brain axis associations | Curated associations |
 
@@ -247,7 +245,7 @@ taxa = response.json()["taxa"]
 - `ASSOCIATED_WITH_DISEASE` - Taxon → Disease
 - `PARTICIPATES_IN` - Compound/Gene → Pathway
 - `TARGETS` - Drug → Protein
-- `DGIDB_INTERACTS_WITH` - Drug ↔ Gene, from DGIdb (kept distinct from `INTERACTS_WITH`, which is used for unrelated mined-literature predicates)
+- `DGIDB_INTERACTS_WITH` - Drug ↔ Gene interaction (kept distinct from `INTERACTS_WITH`, which is used for unrelated mined-literature predicates)
 - `ENCODED_BY` - Protein → Gene (derived via the `--derive` maintenance flag)
 - `BELONGS_TO_CLASS` - Drug → DrugClass
 - `PROCESSES` - Metabolic processing

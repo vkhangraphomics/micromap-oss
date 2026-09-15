@@ -172,9 +172,9 @@ classes:
       normalizer: null
       notes: >
         protein_id is prefixed (e.g., "UniProt:P12345"); uniprot_id /
-        uniprot_accession are the bare accession. drugbank_loader sets
-        gene_name as a property; reactome_loader queries Protein by name
-        (not uniprot) — cross-source lookup gaps tracked separately.
+        uniprot_accession are the bare accession. reactome_loader queries
+        Protein by name (not uniprot) — cross-source lookup gaps tracked
+        separately.
 
   Pathway:
     id_prefixes: [KEGG, Reactome]
@@ -316,7 +316,7 @@ classes:
     x_mapforge:
       properties: [action_type, mechanism]
       status: populated
-      notes: Created by drugbank_loader and chembl_loader.
+      notes: Created by chembl_loader.
 
   METABOLIZED_BY:
     is_a: association
@@ -324,8 +324,8 @@ classes:
     object: Protein
     x_mapforge:
       properties: []
-      status: populated
-      notes: Created by drugbank_loader. CYP-enzyme drug metabolism.
+      status: planned
+      notes: CYP-enzyme drug metabolism relationship; not populated by any loader included in this mirror.
 
   TRANSPORTED_BY:
     is_a: association
@@ -333,8 +333,8 @@ classes:
     object: Protein
     x_mapforge:
       properties: []
-      status: populated
-      notes: Created by drugbank_loader. Drug-transporter interactions.
+      status: planned
+      notes: Drug-transporter interaction relationship; not populated by any loader included in this mirror.
 
   LINKED_TO_DISEASE:
     is_a: association
