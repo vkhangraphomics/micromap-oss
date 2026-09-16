@@ -1,5 +1,9 @@
 # MicroMap
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22800749.svg)](https://doi.org/10.5281/zenodo.22800749)
+[![KG-Registry](https://img.shields.io/badge/KG--Registry-listed-blue)](https://kghub.org/kg-registry/resource/micromap/micromap.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Graphomics' microbiome knowledge graph platform, providing comprehensive access to microbiome-disease associations, taxonomic data, and metabolite relationships.
 
 > **Not to be confused with** the "MicroMap" microbiome-metabolism network
@@ -278,7 +282,11 @@ pytest tests/
 ## Citing MicroMap
 
 If you use MicroMap in your research, please cite it — see
-[`CITATION.cff`](CITATION.cff).
+[`CITATION.cff`](CITATION.cff), or use the DOI directly:
+[10.5281/zenodo.22800749](https://doi.org/10.5281/zenodo.22800749).
+
+MicroMap is also listed in the [KG-Registry](https://kghub.org/kg-registry/resource/micromap/micromap.html),
+a community registry of knowledge graphs.
 
 ## License
 
