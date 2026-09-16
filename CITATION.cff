@@ -1,11 +1,14 @@
 cff-version: 1.2.0
 message: "If you use MicroMap in your research, please cite it as below."
-title: "MicroMap"
+title: "MicroMap (Graphomics Knowledge Graph Platform)"
 abstract: >-
   A microbiome knowledge graph platform powered by Neo4j, with a
   reviewable ingestion pipeline (MapForge) that turns raw tabular and
   BioCypher-adapter-sourced data into parameterized Cypher bundles a
-  reviewer can approve before any node lands in the graph.
+  reviewer can approve before any node lands in the graph. Not affiliated
+  with the identically-named MicroMap microbiome-metabolism visualization
+  resource (Thiele lab, npj Biofilms and Microbiomes, 2025,
+  https://dataverse.harvard.edu/dataverse/micromap).
 authors:
   - family-names: Khandavalli
     given-names: Varun

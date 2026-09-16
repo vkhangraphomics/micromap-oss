@@ -3,6 +3,20 @@
 This document covers how to cite MapForge, and the licensing status of every
 piece of bundled reference data.
 
+## Name disambiguation
+
+"MicroMap" is also the name of an unrelated, published academic tool: a
+microbiome-metabolism network-visualization resource from the Thiele lab
+(University of Galway), preprinted on bioRxiv (Feb 2025) and published in
+[*npj Biofilms and Microbiomes*](https://www.nature.com/articles/s41522-025-00853-0)
+(Nov 2025), hosted on [Harvard Dataverse](https://dataverse.harvard.edu/dataverse/micromap)
+and integrated with the Virtual Metabolic Human database and the COBRA
+Toolbox. It visualizes genome-scale metabolic reconstructions and predates
+this project. There is no affiliation between the two — if you're citing
+this MapForge/MicroMap (the Graphomics knowledge-graph platform), make sure
+the `CITATION.cff` metadata you use matches this repository
+(`vkhangraphomics/micromap-oss`), not the Thiele-lab dataverse entry.
+
 ## Citing MapForge
 
 If you use MapForge in your research or publish results that depend on it,

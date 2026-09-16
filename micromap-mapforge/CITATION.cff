@@ -1,10 +1,13 @@
 cff-version: 1.2.0
 message: "If you use MapForge in your research, please cite it as below."
-title: "MicroMap MapForge"
+title: "MicroMap MapForge (Graphomics)"
 abstract: >-
   A reviewable ingestion pipeline for biomedical knowledge graphs.
   Turns raw tabular data into parameterized Cypher bundles that a
-  reviewer can approve before any node lands in Neo4j.
+  reviewer can approve before any node lands in Neo4j. Part of the
+  Graphomics MicroMap platform; not affiliated with the identically-named
+  MicroMap microbiome-metabolism visualization resource (Thiele lab,
+  npj Biofilms and Microbiomes, 2025).
 authors:
   - family-names: Khandavalli
     given-names: Varun

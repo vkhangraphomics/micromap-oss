@@ -2,6 +2,14 @@
 
 Graphomics' microbiome knowledge graph platform, providing comprehensive access to microbiome-disease associations, taxonomic data, and metabolite relationships.
 
+> **Not to be confused with** the "MicroMap" microbiome-metabolism network
+> visualization resource from the Thiele lab (University of Galway), published
+> in [*npj Biofilms and Microbiomes*](https://www.nature.com/articles/s41522-025-00853-0)
+> (2025) and hosted on [Harvard Dataverse](https://dataverse.harvard.edu/dataverse/micromap).
+> That project visualizes genome-scale metabolic reconstructions; this one is
+> a Neo4j-backed knowledge graph + ingestion platform. Unrelated projects,
+> same name, same field — no affiliation between them.
+
 ## Quick Start
 
 1. **Clone and configure:**
