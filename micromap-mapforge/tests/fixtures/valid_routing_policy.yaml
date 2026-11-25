@@ -1,5 +1,0 @@
-rules:
-  - match: { tier: internal }
-    destination: micromap-core
-default:
-  destination: registry-only
